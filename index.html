@@ -168,8 +168,8 @@ body {
 		<div id="fs-overlay">
 			<div class="fs-icon">🎮</div>
 			<div class="fs-title">三國迷宮塔防</div>
-			<div class="fs-subtitle">請點擊右下角 ⛶ 全螢幕按鈕獲得最佳體驗</div>
-			<div class="fs-btn" id="fs-btn">⛶ 點擊開始遊戲</div>
+			<div class="fs-subtitle">隱藏網址列，獲得最佳遊戲體驗</div>
+			<div class="fs-btn" id="fs-btn">⛶ 點擊進入全螢幕</div>
 		</div>
 
 		<canvas id="canvas">
@@ -188,18 +188,42 @@ body {
 		(function() {
 			var isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
 			var overlay = document.getElementById('fs-overlay');
+			var triggered = false;
 
-			function dismissOverlay() {
-				overlay.style.display = 'none';
-				// 嘗試全螢幕（獨立部署時有效，itch.io iframe 內可能無效）
+			function goFullscreen() {
+				if (triggered) return;
+				triggered = true;
+
+				// 先請求全螢幕，成功後再隱藏覆蓋層
+				var el = document.documentElement;
+				var fsPromise = null;
+
 				try {
-					var el = document.documentElement;
-					if (el.requestFullscreen) el.requestFullscreen({navigationUI:'hide'}).catch(function(){});
-					else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+					if (el.requestFullscreen) {
+						fsPromise = el.requestFullscreen({navigationUI: 'hide'});
+					} else if (el.webkitRequestFullscreen) {
+						el.webkitRequestFullscreen();
+					}
 				} catch(e) {}
+
+				// 鎖定橫向
 				try {
-					if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(function(){});
+					if (screen.orientation && screen.orientation.lock) {
+						screen.orientation.lock('landscape').catch(function(){});
+					}
 				} catch(e) {}
+
+				if (fsPromise && fsPromise.then) {
+					fsPromise.then(function() {
+						overlay.style.display = 'none';
+					}).catch(function() {
+						overlay.style.display = 'none';
+						triggered = false;
+					});
+				} else {
+					setTimeout(function() { overlay.style.display = 'none'; }, 200);
+					triggered = false;
+				}
 			}
 
 			if (isMobile) {
@@ -211,8 +235,23 @@ body {
 					}
 				}, 500);
 
-				overlay.addEventListener('click', dismissOverlay);
-				overlay.addEventListener('touchend', function(e) { e.preventDefault(); dismissOverlay(); });
+				// 用 click 事件（最可靠的 user gesture）
+				overlay.addEventListener('click', function(e) {
+					e.preventDefault();
+					goFullscreen();
+				});
+
+				// 離開全螢幕時再次提示
+				var fsEvents = ['fullscreenchange', 'webkitfullscreenchange'];
+				fsEvents.forEach(function(evt) {
+					document.addEventListener(evt, function() {
+						var isFull = !!(document.fullscreenElement || document.webkitFullscreenElement);
+						if (!isFull) {
+							triggered = false;
+							setTimeout(function() { overlay.style.display = 'flex'; }, 300);
+						}
+					});
+				});
 			}
 		})();
 		</script>
