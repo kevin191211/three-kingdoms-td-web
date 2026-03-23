@@ -28,48 +28,6 @@ body {
 	outline: none;
 }
 
-/* 全螢幕提示覆蓋層 */
-#fs-overlay {
-	display: none;
-	position: fixed;
-	top: 0; left: 0; right: 0; bottom: 0;
-	background: rgba(0,0,0,0.88);
-	z-index: 10000;
-	justify-content: center;
-	align-items: center;
-	flex-direction: column;
-	text-align: center;
-	font-family: 'Noto Sans TC', 'Noto Sans', Arial, sans-serif;
-	cursor: pointer;
-	-webkit-tap-highlight-color: transparent;
-}
-#fs-overlay .fs-icon { font-size: 4rem; margin-bottom: 1rem; }
-#fs-overlay .fs-title {
-	font-size: 1.8rem;
-	color: #ffd633;
-	font-weight: bold;
-	margin-bottom: 0.5rem;
-}
-#fs-overlay .fs-subtitle {
-	font-size: 1rem;
-	color: #ccc;
-	margin-bottom: 1.5rem;
-}
-#fs-overlay .fs-btn {
-	background: #c0392b;
-	border: 3px solid #e67e22;
-	color: white;
-	font-size: 1.4rem;
-	padding: 1rem 3rem;
-	border-radius: 14px;
-	font-weight: bold;
-	animation: pulse 1.5s ease-in-out infinite;
-}
-@keyframes pulse {
-	0%, 100% { transform: scale(1); }
-	50% { transform: scale(1.1); }
-}
-
 /* 直向提示 */
 #rotate-notice {
 	display: none;
@@ -164,14 +122,6 @@ body {
 			<div style="font-size:0.9rem;color:#999;">Please rotate to landscape</div>
 		</div>
 
-		<!-- 全螢幕提示 -->
-		<div id="fs-overlay">
-			<div class="fs-icon">🎮</div>
-			<div class="fs-title">三國迷宮塔防</div>
-			<div class="fs-subtitle">隱藏網址列，獲得最佳遊戲體驗</div>
-			<div class="fs-btn" id="fs-btn">⛶ 點擊進入全螢幕</div>
-		</div>
-
 		<canvas id="canvas">
 			Your browser does not support the canvas tag.
 		</canvas>
@@ -183,78 +133,6 @@ body {
 			<progress id="status-progress"></progress>
 			<div id="status-notice"></div>
 		</div>
-
-		<script>
-		(function() {
-			var isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
-			var overlay = document.getElementById('fs-overlay');
-			var triggered = false;
-
-			function goFullscreen() {
-				if (triggered) return;
-				triggered = true;
-
-				// 先請求全螢幕，成功後再隱藏覆蓋層
-				var el = document.documentElement;
-				var fsPromise = null;
-
-				try {
-					if (el.requestFullscreen) {
-						fsPromise = el.requestFullscreen({navigationUI: 'hide'});
-					} else if (el.webkitRequestFullscreen) {
-						el.webkitRequestFullscreen();
-					}
-				} catch(e) {}
-
-				// 鎖定橫向
-				try {
-					if (screen.orientation && screen.orientation.lock) {
-						screen.orientation.lock('landscape').catch(function(){});
-					}
-				} catch(e) {}
-
-				if (fsPromise && fsPromise.then) {
-					fsPromise.then(function() {
-						overlay.style.display = 'none';
-					}).catch(function() {
-						overlay.style.display = 'none';
-						triggered = false;
-					});
-				} else {
-					setTimeout(function() { overlay.style.display = 'none'; }, 200);
-					triggered = false;
-				}
-			}
-
-			if (isMobile) {
-				var checkReady = setInterval(function() {
-					var status = document.getElementById('status');
-					if (!status || !status.parentNode || status.style.visibility === 'hidden') {
-						clearInterval(checkReady);
-						overlay.style.display = 'flex';
-					}
-				}, 500);
-
-				// 用 click 事件（最可靠的 user gesture）
-				overlay.addEventListener('click', function(e) {
-					e.preventDefault();
-					goFullscreen();
-				});
-
-				// 離開全螢幕時再次提示
-				var fsEvents = ['fullscreenchange', 'webkitfullscreenchange'];
-				fsEvents.forEach(function(evt) {
-					document.addEventListener(evt, function() {
-						var isFull = !!(document.fullscreenElement || document.webkitFullscreenElement);
-						if (!isFull) {
-							triggered = false;
-							setTimeout(function() { overlay.style.display = 'flex'; }, 300);
-						}
-					});
-				});
-			}
-		})();
-		</script>
 
 		<script src="index.js"></script>
 		<script>
