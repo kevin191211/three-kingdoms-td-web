@@ -28,6 +28,27 @@ body {
 	outline: none;
 }
 
+/* Android 全螢幕按鈕 */
+#fs-btn-android {
+	display: none;
+	position: fixed;
+	bottom: 8px;
+	right: 8px;
+	z-index: 9999;
+	background: rgba(0,0,0,0.5);
+	border: 1px solid rgba(255,255,255,0.3);
+	color: white;
+	font-size: 0.75rem;
+	padding: 4px 10px;
+	border-radius: 14px;
+	cursor: pointer;
+	font-family: 'Noto Sans TC', 'Noto Sans', Arial, sans-serif;
+	-webkit-tap-highlight-color: transparent;
+}
+#fs-btn-android:active {
+	background: rgba(255,255,255,0.2);
+}
+
 /* 直向提示 */
 #rotate-notice {
 	display: none;
@@ -122,6 +143,9 @@ body {
 			<div style="font-size:0.9rem;color:#999;">Please rotate to landscape</div>
 		</div>
 
+		<!-- Android 全螢幕小按鈕 -->
+		<div id="fs-btn-android" onclick="goFS()">⛶ 全螢幕</div>
+
 		<canvas id="canvas">
 			Your browser does not support the canvas tag.
 		</canvas>
@@ -134,9 +158,49 @@ body {
 			<div id="status-notice"></div>
 		</div>
 
+		<script>
+		// Android 全螢幕（iPhone 不支援 Fullscreen API，不顯示按鈕）
+		function goFS() {
+			var el = document.documentElement;
+			try {
+				if (el.requestFullscreen) el.requestFullscreen({navigationUI:'hide'});
+				else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+			} catch(e) {}
+			try {
+				if (screen.orientation && screen.orientation.lock)
+					screen.orientation.lock('landscape').catch(function(){});
+			} catch(e) {}
+		}
+		(function() {
+			var ua = navigator.userAgent;
+			var isAndroid = /Android/i.test(ua);
+			var isIOS = /iPhone|iPad|iPod/i.test(ua);
+			var isMobile = isAndroid || isIOS;
+			// 只在 Android 上顯示全螢幕按鈕
+			if (isAndroid) {
+				var btn = document.getElementById('fs-btn-android');
+				// 遊戲載入後顯示
+				var check = setInterval(function() {
+					var s = document.getElementById('status');
+					if (!s || !s.parentNode || s.style.visibility === 'hidden') {
+						clearInterval(check);
+						btn.style.display = 'block';
+					}
+				}, 500);
+				// 進入全螢幕後隱藏按鈕
+				['fullscreenchange','webkitfullscreenchange'].forEach(function(evt) {
+					document.addEventListener(evt, function() {
+						var isFull = !!(document.fullscreenElement || document.webkitFullscreenElement);
+						btn.style.display = isFull ? 'none' : 'block';
+					});
+				});
+			}
+		})();
+		</script>
+
 		<script src="index.js"></script>
 		<script>
-		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":22650384,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":22650448,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 		const GODOT_THREADS_ENABLED = false;
 		const engine = new Engine(GODOT_CONFIG);
 
