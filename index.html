@@ -348,7 +348,7 @@ body {
 			<div id="g_id_onload"
 				data-client_id="507989598042-c5vmt17uhsgs4gh5bi797k6lq3hv4981.apps.googleusercontent.com"
 				data-callback="handleGoogleLogin"
-				data-auto_prompt="true"
+				data-auto_prompt="false"
 				data-auto_select="true">
 			</div>
 			<div class="g_id_signin"
@@ -405,8 +405,11 @@ body {
 				userAvatar: window._googleAuth.userAvatar,
 			}));
 			console.log('[GoogleAuth] 登入成功:', payload.name);
-			// 隱藏登入覆蓋層
+			// 隱藏登入覆蓋層 + 取消 One Tap 提示
 			hideLoginOverlay();
+			if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+				google.accounts.id.cancel();
+			}
 		}
 
 		function hideLoginOverlay() {
