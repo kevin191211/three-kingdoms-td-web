@@ -460,6 +460,20 @@ body {
 
 		// 顯示登入覆蓋層（供 Godot 呼叫）
 		function showGoogleLogin() {
+			// localhost 測試時使用假資料自動登入
+			if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+				console.log('[GoogleAuth] localhost 環境，使用測試帳號自動登入');
+				window._googleAuth = {
+					isLoggedIn: true,
+					userId: 'test_local_user',
+					userName: '本地測試玩家',
+					userEmail: 'test@localhost',
+					userAvatar: '',
+					idToken: 'fake_token_for_local_testing'
+				};
+				hideLoginOverlay();
+				return;
+			}
 			var el = document.getElementById('google-login-overlay');
 			if (el) {
 				el.style.display = 'flex';
@@ -490,7 +504,7 @@ body {
 		<script>
 		// Cache busting: 攔截 fetch，為 .pck/.wasm 加版本參數
 		(function() {
-			var V = "7fbeda7-1774354587";
+			var V = "dfe4c66-1774358304";
 			var _f = window.fetch;
 			window.fetch = function(u) {
 				if (typeof u === "string" && /\.(pck|wasm|js)(\?|$)/.test(u))
@@ -499,9 +513,9 @@ body {
 			};
 		})();
 		</script>
-		<script src="index.js?v=7fbeda7-1774354587"></script>
+		<script src="index.js?v=dfe4c66-1774358304"></script>
 		<script>
-		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":29478548,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":30653444,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 		const GODOT_THREADS_ENABLED = false;
 		const engine = new Engine(GODOT_CONFIG);
 
