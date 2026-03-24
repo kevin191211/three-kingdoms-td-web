@@ -377,14 +377,18 @@ body {
 		var savedProfile = null;
 		try { savedProfile = JSON.parse(localStorage.getItem('_userProfile')); } catch(e) {}
 
+		// 如果有 savedProfile，視為已登入（token 等連線伺服器時再取）
 		window._googleAuth = {
-			isLoggedIn: false,
+			isLoggedIn: !!(savedProfile && savedProfile.userId),
 			userId: savedProfile ? savedProfile.userId : '',
 			userName: savedProfile ? savedProfile.userName : '',
 			userEmail: savedProfile ? savedProfile.userEmail : '',
 			userAvatar: savedProfile ? savedProfile.userAvatar : '',
 			idToken: '',
 		};
+		if (window._googleAuth.isLoggedIn) {
+			console.log('[GoogleAuth] 從 localStorage 恢復登入:', window._googleAuth.userName);
+		}
 
 		function handleGoogleLogin(response) {
 			// 解析 JWT credential 取得使用者資料
