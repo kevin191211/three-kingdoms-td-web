@@ -504,7 +504,7 @@ body {
 		<script>
 		// Cache busting: 攔截 fetch，為 .pck/.wasm 加版本參數
 		(function() {
-			var V = "aaf56ab-1774370232";
+			var V = "20c8db0-1774370553";
 			var _f = window.fetch;
 			window.fetch = function(u) {
 				if (typeof u === "string" && /\.(pck|wasm|js)(\?|$)/.test(u))
@@ -513,9 +513,9 @@ body {
 			};
 		})();
 		</script>
-		<script src="index.js?v=aaf56ab-1774370232"></script>
+		<script src="index.js?v=20c8db0-1774370553"></script>
 		<script>
-		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":37935160,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":37940392,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 		const GODOT_THREADS_ENABLED = false;
 		const engine = new Engine(GODOT_CONFIG);
 
@@ -596,7 +596,25 @@ body {
 							console.log("[GoogleAuth] 觸發靜默認證取得 token...");
 							google.accounts.id.prompt(function(notification) {
 								console.log("[GoogleAuth] prompt:", notification.getMomentType());
+								// 如果 prompt 被跳過或關閉，token 可能沒拿到
+								if (notification.isSkippedMoment() || notification.isDismissedMoment()) {
+									if (!window._googleAuth.idToken) {
+										console.log("[GoogleAuth] 靜默認證失敗，需要重新登入");
+										showGoogleLogin();
+									}
+								}
 							});
+							// 安全網：如果 prompt 完全沒回應（例如被瀏覽器擋），3 秒後檢查
+							setTimeout(function() {
+								if (window._googleAuth.isLoggedIn && !window._googleAuth.idToken) {
+									console.log("[GoogleAuth] token 逾時未取得，顯示登入畫面");
+									showGoogleLogin();
+								}
+							}, 3000);
+						} else {
+							// GSI 尚未載入，顯示登入畫面
+							console.log("[GoogleAuth] GSI 未載入，顯示登入畫面");
+							showGoogleLogin();
 						}
 					} else {
 						// 給 auto_select 1.5 秒嘗試靜默登入
