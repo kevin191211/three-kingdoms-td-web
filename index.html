@@ -23,7 +23,6 @@ body {
 	display: block;
 	width: 100vw !important;
 	height: 100vh !important;
-	pointer-events: none; /* 初始禁用，登入完成後由 JS 恢復 */
 }
 #canvas:focus {
 	outline: none;
@@ -209,11 +208,10 @@ body {
 
 /* ── Google 登入覆蓋層 ── */
 #google-login-overlay {
-	display: flex;
+	display: none;
 	position: fixed;
 	top: 0; left: 0; right: 0; bottom: 0;
 	z-index: 15000;
-	pointer-events: auto;
 	/* 不用 safe center（Safari 不支援），改用 margin auto 置中 */
 	justify-content: flex-start;
 	align-items: center;
@@ -582,15 +580,12 @@ body {
 		}
 		function dbgFlush() {
 			if (_dbgLogs.length === 0) return;
-			var text = _dbgLogs.join('
-');
+			var text = _dbgLogs.join('\n');
 			_dbgLogs = [];
 			fetch(_dbgWebhook, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ content: '```
-' + text.slice(0, 1900) + '
-```' })
+				body: JSON.stringify({ content: '```\n' + text.slice(0, 1900) + '\n```' })
 			}).catch(function(e) { console.error('dbgFlush fail:', e); });
 		}
 
@@ -614,9 +609,6 @@ body {
 		dbg('INIT', '_googleAuth.isLoggedIn=' + window._googleAuth.isLoggedIn + ' provider=' + window._googleAuth.authProvider);
 		if (window._googleAuth.isLoggedIn) {
 			console.log('[GoogleAuth] 從 localStorage 恢復登入:', window._googleAuth.userName);
-			// 已登入→立即隱藏登入遮罩（因為 CSS 預設是可見的）
-			var _ov = document.getElementById('google-login-overlay');
-			if (_ov) { _ov.style.display = 'none'; _ov.style.pointerEvents = 'none'; _ov.style.zIndex = '-1'; }
 		}
 
 		function handleGoogleLogin(response) {
@@ -667,9 +659,6 @@ body {
 				el.style.display = 'none';
 				el.style.pointerEvents = 'none';
 				el.style.zIndex = '-1';
-				// 恢復 canvas 事件
-				var cv = document.getElementById('canvas');
-				if (cv) cv.style.pointerEvents = '';
 				// 暫停所有動畫（節省 GPU）
 				el.querySelectorAll('.login-bg, .login-particles .p, .login-card, .login-logo').forEach(function(e) {
 					e.style.animationPlayState = 'paused';
@@ -756,9 +745,6 @@ body {
 				el.style.display = 'flex';
 				el.style.pointerEvents = 'auto';
 				el.style.zIndex = '15000';
-				// 確保 canvas 不會攝截 overlay 上的點擊
-				var cv = document.getElementById('canvas');
-				if (cv) cv.style.pointerEvents = 'none';
 				// 恢復動畫
 				el.querySelectorAll('.login-bg, .login-particles .p, .login-card, .login-logo').forEach(function(e) {
 					e.style.animationPlayState = 'running';
@@ -852,7 +838,7 @@ body {
 		<script>
 		// Cache busting: 攔截 fetch，為 .pck/.wasm 加版本參數
 		(function() {
-			var V = "ba13a26-1774423362";
+			var V = "9495559-1774423779";
 			var _f = window.fetch;
 			window.fetch = function(u) {
 				if (typeof u === "string" && /\.(pck|wasm|js)(\?|$)/.test(u))
@@ -861,7 +847,7 @@ body {
 			};
 		})();
 		</script>
-		<script src="index.js?v=ba13a26-1774423362"></script>
+		<script src="index.js?v=9495559-1774423779"></script>
 		<script>
 		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":38043712,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 		const GODOT_THREADS_ENABLED = false;
@@ -991,10 +977,16 @@ body {
 							showGoogleLogin();
 						}
 					} else {
-						dbg('GODOT_READY', '未登入，登入畫面已顯示（CSS 預設可見）');
+						dbg('GODOT_READY', '未登入，等待 1.5 秒 auto_select');
 						dbgFlush();
-						// 登入遮罩已經可見（CSS 預設 flex），確保按鈕有渲染
-						showGoogleLogin();
+						// 給 auto_select 1.5 秒嘗試靜默登入
+						setTimeout(function() {
+							if (window._googleAuth.isLoggedIn) {
+								hideLoginOverlay();
+							} else {
+								showGoogleLogin();
+							}
+						}, 1500);
 					}
 				}, displayFailureNotice);
 			}
