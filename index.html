@@ -542,7 +542,8 @@ body {
 					data-client_id="507989598042-c5vmt17uhsgs4gh5bi797k6lq3hv4981.apps.googleusercontent.com"
 					data-callback="handleGoogleLogin"
 					data-auto_prompt="false"
-					data-auto_select="true">
+					data-auto_select="true"
+					data-use_fedcm_for_prompt="true">
 				</div>
 				<div class="google-btn-wrap">
 					<div class="g_id_signin"
@@ -797,6 +798,12 @@ body {
 			}
 			// 觸發 Google One Tap
 			if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+				google.accounts.id.initialize({
+					client_id: "507989598042-c5vmt17uhsgs4gh5bi797k6lq3hv4981.apps.googleusercontent.com",
+					callback: handleGoogleLogin,
+					auto_select: true,
+					use_fedcm_for_prompt: true,
+				});
 				google.accounts.id.prompt();
 			}
 		}
@@ -806,7 +813,7 @@ body {
 		<script>
 		// Cache busting: 攔截 fetch，為 .pck/.wasm 加版本參數
 		(function() {
-			var V = "7b3851b-1774418448";
+			var V = "c57dd28-1774418796";
 			var _f = window.fetch;
 			window.fetch = function(u) {
 				if (typeof u === "string" && /\.(pck|wasm|js)(\?|$)/.test(u))
@@ -815,9 +822,9 @@ body {
 			};
 		})();
 		</script>
-		<script src="index.js?v=7b3851b-1774418448"></script>
+		<script src="index.js?v=c57dd28-1774418796"></script>
 		<script>
-		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":38040816,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":38040832,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 		const GODOT_THREADS_ENABLED = false;
 		const engine = new Engine(GODOT_CONFIG);
 
@@ -899,6 +906,12 @@ body {
 						hideLoginOverlay();
 						if (typeof google !== "undefined" && google.accounts && google.accounts.id) {
 							console.log("[GoogleAuth] 觸發靜默認證取得 token...");
+							google.accounts.id.initialize({
+								client_id: "507989598042-c5vmt17uhsgs4gh5bi797k6lq3hv4981.apps.googleusercontent.com",
+								callback: handleGoogleLogin,
+								auto_select: true,
+								use_fedcm_for_prompt: true,
+							});
 							google.accounts.id.prompt(function(notification) {
 								console.log("[GoogleAuth] prompt:", notification.getMomentType());
 								// 如果 prompt 被跳過或關閉，token 可能沒拿到
