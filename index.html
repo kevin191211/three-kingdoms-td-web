@@ -838,7 +838,7 @@ body {
 		<script>
 		// Cache busting: 攔截 fetch，為 .pck/.wasm 加版本參數
 		(function() {
-			var V = "206d640-1774424451";
+			var V = "3be7c5c-1774425648";
 			var _f = window.fetch;
 			window.fetch = function(u) {
 				if (typeof u === "string" && /\.(pck|wasm|js)(\?|$)/.test(u))
@@ -847,9 +847,9 @@ body {
 			};
 		})();
 		</script>
-		<script src="index.js?v=206d640-1774424451"></script>
+		<script src="index.js?v=3be7c5c-1774425648"></script>
 		<script>
-		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":38043760,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":38044224,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 		const GODOT_THREADS_ENABLED = false;
 		const engine = new Engine(GODOT_CONFIG);
 
@@ -995,37 +995,6 @@ body {
 
 						}
 
-									dbg('PROMPT_CB', 'One Tap 顯示中，取消 timeout');
-
-									dbgFlush();
-
-								}
-
-								// 被跳過或關閉 → 沒拿到 token 才顯示登入畫面
-
-								if (notification.isSkippedMoment() || notification.isDismissedMoment()) {
-
-									if (!window._googleAuth.idToken) {
-
-										dbg('PROMPT_CB', '→ showGoogleLogin (靜默失敗)');
-
-										dbgFlush();
-
-										showGoogleLogin();
-
-									}
-
-								}
-
-							});
-
-						} else {
-							// GSI 尚未載入，顯示登入畫面
-							dbg('REAUTH', 'GSI 未載入 → showGoogleLogin');
-						dbgFlush();
-						console.log("[GoogleAuth] GSI 未載入，顯示登入畫面");
-							showGoogleLogin();
-						}
 					} else {
 						dbg('GODOT_READY', '未登入，等待 1.5 秒 auto_select');
 						dbgFlush();
