@@ -135,63 +135,250 @@ body {
 		<!-- Google Identity Services SDK -->
 		<script src="https://accounts.google.com/gsi/client" async defer></script>
 		<style>
-/* Google 登入覆蓋層 */
+/* ── 登入覆蓋層動畫 ── */
+@keyframes loginFadeIn {
+	from { opacity: 0; }
+	to { opacity: 1; }
+}
+@keyframes loginSlideUp {
+	from { opacity: 0; transform: translateY(30px); }
+	to { opacity: 1; transform: translateY(0); }
+}
+@keyframes loginLogoIn {
+	from { opacity: 0; transform: scale(0.7); }
+	to { opacity: 1; transform: scale(1); }
+}
+@keyframes loginGlow {
+	0%, 100% { box-shadow: 0 0 20px rgba(212,175,55,0.3), 0 0 40px rgba(212,175,55,0.1); }
+	50% { box-shadow: 0 0 30px rgba(212,175,55,0.5), 0 0 60px rgba(212,175,55,0.2); }
+}
+@keyframes loginShimmer {
+	0% { background-position: -200% center; }
+	100% { background-position: 200% center; }
+}
+/* Ken Burns 背景緩動 */
+@keyframes kenBurns {
+	0%   { transform: scale(1.0) translate(0, 0); }
+	25%  { transform: scale(1.08) translate(-1%, -0.5%); }
+	50%  { transform: scale(1.12) translate(0.5%, -1%); }
+	75%  { transform: scale(1.06) translate(-0.5%, 0.5%); }
+	100% { transform: scale(1.0) translate(0, 0); }
+}
+/* Logo 呼吸光暈 */
+@keyframes logoPulse {
+	0%, 100% { filter: drop-shadow(0 4px 16px rgba(212,175,55,0.4)) drop-shadow(0 0 8px rgba(212,175,55,0.1)); }
+	50%      { filter: drop-shadow(0 4px 20px rgba(212,175,55,0.6)) drop-shadow(0 0 16px rgba(212,175,55,0.25)); }
+}
+/* 卡片邊框光暈呼吸 */
+@keyframes cardGlow {
+	0%, 100% { border-color: rgba(212,175,55,0.25); box-shadow: 0 0 20px rgba(212,175,55,0.05); }
+	50%      { border-color: rgba(212,175,55,0.4);  box-shadow: 0 0 30px rgba(212,175,55,0.12); }
+}
+/* 浮動光點 */
+@keyframes particleFloat1 {
+	0%   { transform: translate(0, 0) scale(1);   opacity: 0; }
+	10%  { opacity: 0.8; }
+	90%  { opacity: 0.8; }
+	100% { transform: translate(60px, -120px) scale(0.3); opacity: 0; }
+}
+@keyframes particleFloat2 {
+	0%   { transform: translate(0, 0) scale(0.6); opacity: 0; }
+	15%  { opacity: 0.6; }
+	85%  { opacity: 0.6; }
+	100% { transform: translate(-40px, -100px) scale(0.2); opacity: 0; }
+}
+@keyframes particleFloat3 {
+	0%   { transform: translate(0, 0) scale(0.8); opacity: 0; }
+	12%  { opacity: 0.7; }
+	88%  { opacity: 0.5; }
+	100% { transform: translate(30px, -140px) scale(0.1); opacity: 0; }
+}
+@keyframes particleFloat4 {
+	0%   { transform: translate(0, 0) scale(0.5); opacity: 0; }
+	20%  { opacity: 0.5; }
+	80%  { opacity: 0.4; }
+	100% { transform: translate(-55px, -110px) scale(0.15); opacity: 0; }
+}
+@keyframes particleDrift {
+	0%   { transform: translate(0, 0); opacity: 0; }
+	10%  { opacity: 0.4; }
+	90%  { opacity: 0.3; }
+	100% { transform: translate(80px, -60px); opacity: 0; }
+}
+
+/* ── Google 登入覆蓋層 ── */
 #google-login-overlay {
 	display: none;
 	position: fixed;
 	top: 0; left: 0; right: 0; bottom: 0;
-	background: rgba(0,0,0,0.7);
 	z-index: 15000;
-	justify-content: center;
+	/* 不用 safe center（Safari 不支援），改用 margin auto 置中 */
+	justify-content: flex-start;
 	align-items: center;
 	flex-direction: column;
-	gap: 1rem;
 	font-family: 'Noto Sans TC', 'Noto Sans', Arial, sans-serif;
 	color: #fff;
+	animation: loginFadeIn 0.6s ease-out;
+	overflow-x: hidden;
+	overflow-y: auto;
+	-webkit-overflow-scrolling: touch;
+	background-color: #0a0814;
+	padding: 8px 0;
+	padding-top: max(8px, env(safe-area-inset-top));
+	padding-bottom: max(8px, env(safe-area-inset-bottom));
+	box-sizing: border-box;
 }
-#google-login-overlay .login-title {
-	font-size: 1.4rem;
-	font-weight: bold;
-	margin-bottom: 0.5rem;
+
+/* 背景層：Ken Burns 緩動（fixed 防止跟著捲動） */
+#google-login-overlay .login-bg {
+	position: fixed;
+	top: -5%; left: -5%; right: -5%; bottom: -5%;
+	background: url('index.png') center/cover no-repeat;
+	animation: kenBurns 25s ease-in-out infinite;
+	z-index: 0;
+	will-change: transform;
 }
+/* 背景暗色漸層遮罩 */
+#google-login-overlay .login-bg-overlay {
+	position: fixed;
+	top: 0; left: 0; right: 0; bottom: 0;
+	background: linear-gradient(180deg, rgba(10,8,20,0.5) 0%, rgba(10,8,20,0.7) 50%, rgba(10,8,20,0.9) 100%);
+	z-index: 1;
+}
+
+/* 浮動光點容器 */
+#google-login-overlay .login-particles {
+	position: fixed;
+	top: 0; left: 0; right: 0; bottom: 0;
+	z-index: 2;
+	pointer-events: none;
+	overflow: hidden;
+}
+#google-login-overlay .login-particles .p {
+	position: absolute;
+	border-radius: 50%;
+	background: radial-gradient(circle, rgba(212,175,55,0.9) 0%, rgba(212,175,55,0) 70%);
+	will-change: transform, opacity;
+}
+#google-login-overlay .login-particles .p1 { width:6px; height:6px; bottom:20%; left:15%;  animation: particleFloat1 6s ease-in-out infinite; }
+#google-login-overlay .login-particles .p2 { width:4px; height:4px; bottom:25%; left:70%;  animation: particleFloat2 8s ease-in-out 1s infinite; }
+#google-login-overlay .login-particles .p3 { width:5px; height:5px; bottom:15%; left:40%;  animation: particleFloat3 7s ease-in-out 2s infinite; }
+#google-login-overlay .login-particles .p4 { width:3px; height:3px; bottom:30%; left:85%;  animation: particleFloat4 9s ease-in-out 0.5s infinite; }
+#google-login-overlay .login-particles .p5 { width:4px; height:4px; bottom:10%; left:55%;  animation: particleDrift 10s ease-in-out 2s infinite; }
+/* 低效能裝置無障礙：關閉所有動畫 */
+@media (prefers-reduced-motion: reduce) {
+	#google-login-overlay .login-bg,
+	#google-login-overlay .login-particles .p,
+	#google-login-overlay .login-card,
+	#google-login-overlay .login-logo { animation: none !important; }
+}
+
+/* 登入卡片容器 */
+#google-login-overlay .login-card {
+	position: relative;
+	z-index: 3;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.4rem;
+	padding: 0.8rem 1.5rem 1rem;
+	background: radial-gradient(ellipse at top, rgba(40,35,60,0.7) 0%, rgba(15,12,30,0.85) 100%);
+	border: 1px solid rgba(212,175,55,0.25);
+	border-radius: 16px;
+	backdrop-filter: blur(8px);
+	-webkit-backdrop-filter: blur(8px);
+	max-width: 320px;
+	width: 90vw;
+	flex-shrink: 0;
+	margin: auto 0; /* flex-start + margin auto = 安全置中（所有瀏覽器相容） */
+	animation: loginSlideUp 0.7s ease-out 0.2s both, cardGlow 4s ease-in-out 1.5s infinite;
+}
+
+/* Logo 圖片 */
+#google-login-overlay .login-logo {
+	width: 120px;
+	max-height: 80px;
+	height: auto;
+	object-fit: contain;
+	filter: drop-shadow(0 4px 16px rgba(212,175,55,0.4));
+	animation: loginLogoIn 0.8s ease-out 0.1s both, logoPulse 3s ease-in-out 1s infinite;
+}
+
+/* 副標題 */
 #google-login-overlay .login-subtitle {
-	font-size: 0.85rem;
-	color: #ccc;
-	margin-bottom: 1rem;
-}
-#google-login-overlay .login-divider {
-	color: rgba(255,255,255,0.3);
 	font-size: 0.75rem;
-	margin: 0.3rem 0;
+	color: rgba(220,210,180,0.75);
+	margin-bottom: 0.2rem;
+	letter-spacing: 1px;
+	animation: loginSlideUp 0.7s ease-out 0.35s both;
 }
+
+/* 分隔線 */
+#google-login-overlay .login-divider {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+	width: 100%;
+	color: rgba(212,175,55,0.35);
+	font-size: 0.65rem;
+	margin: 0;
+	animation: loginSlideUp 0.6s ease-out 0.5s both;
+}
+#google-login-overlay .login-divider::before,
+#google-login-overlay .login-divider::after {
+	content: '';
+	flex: 1;
+	height: 1px;
+	background: linear-gradient(90deg, transparent, rgba(212,175,55,0.3), transparent);
+}
+
+/* Google 按鈕區域 */
+#google-login-overlay .google-btn-wrap {
+	animation: loginSlideUp 0.6s ease-out 0.4s both;
+}
+
+/* 社交按鈕（訪客） */
 #google-login-overlay .social-btn {
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	gap: 8px;
-	width: 230px;
-	height: 40px;
+	width: 240px;
+	height: 38px;
 	border: none;
-	border-radius: 4px;
-	font-size: 0.85rem;
+	border-radius: 10px;
+	font-size: 0.82rem;
 	font-family: inherit;
 	cursor: pointer;
-	font-weight: 500;
+	font-weight: 600;
+	letter-spacing: 0.5px;
+	transition: all 0.25s ease;
+	position: relative;
+	overflow: hidden;
 }
-#google-login-overlay .fb-btn {
-	background: #1877F2;
-	color: #fff;
+#google-login-overlay .social-btn:active {
+	transform: scale(0.96);
 }
-#google-login-overlay .fb-btn:hover {
-	background: #166FE5;
+
+/* 訪客按鈕 */
+#google-login-overlay .guest-btn {
+	background: linear-gradient(135deg, rgba(60,55,80,0.9) 0%, rgba(40,35,65,0.9) 100%);
+	color: rgba(220,210,180,0.9);
+	border: 1px solid rgba(212,175,55,0.25);
+	animation: loginSlideUp 0.6s ease-out 0.55s both;
 }
-#google-login-overlay .apple-btn {
-	background: #000;
-	color: #fff;
-	border: 1px solid #333;
+#google-login-overlay .guest-btn:hover {
+	background: linear-gradient(135deg, rgba(75,68,100,0.95) 0%, rgba(55,48,85,0.95) 100%);
+	border-color: rgba(212,175,55,0.45);
+	box-shadow: 0 4px 20px rgba(212,175,55,0.15);
 }
-#google-login-overlay .apple-btn:hover {
-	background: #222;
+
+/* 底部裝飾文字 */
+#google-login-overlay .login-footer {
+	font-size: 0.6rem;
+	color: rgba(255,255,255,0.25);
+	margin-top: 0;
+	animation: loginSlideUp 0.6s ease-out 0.65s both;
 }
 		</style>
 	</head>
@@ -341,37 +528,44 @@ body {
 
 		<!-- 登入覆蓋層 -->
 		<div id="google-login-overlay">
-			<div class="login-title">三國迷陣防線</div>
-			<div class="login-subtitle">登入以儲存遊戲紀錄</div>
-			<div id="g_id_onload"
-				data-client_id="507989598042-c5vmt17uhsgs4gh5bi797k6lq3hv4981.apps.googleusercontent.com"
-				data-callback="handleGoogleLogin"
-				data-auto_prompt="false"
-				data-auto_select="true">
+			<div class="login-bg"></div>
+			<div class="login-bg-overlay"></div>
+			<div class="login-particles">
+				<div class="p p1"></div><div class="p p2"></div><div class="p p3"></div>
+				<div class="p p4"></div><div class="p p5"></div>
 			</div>
-			<div class="g_id_signin"
-				data-type="standard"
-				data-size="large"
-				data-theme="filled_black"
-				data-text="signin_with"
-				data-shape="rectangular"
-				data-logo_alignment="left"
-				data-locale="zh-TW">
+			<div class="login-card">
+				<img class="login-logo" src="index.png" alt="三國迷宮塔防">
+				<div class="login-subtitle">登入以儲存遊戲進度</div>
+
+				<div id="g_id_onload"
+					data-client_id="507989598042-c5vmt17uhsgs4gh5bi797k6lq3hv4981.apps.googleusercontent.com"
+					data-callback="handleGoogleLogin"
+					data-auto_prompt="false"
+					data-auto_select="true">
+				</div>
+				<div class="google-btn-wrap">
+					<div class="g_id_signin"
+						data-type="standard"
+						data-size="large"
+						data-theme="filled_black"
+						data-text="signin_with"
+						data-shape="pill"
+						data-logo_alignment="left"
+						data-width="240"
+						data-locale="zh-TW">
+					</div>
+				</div>
+
+				<div class="login-divider">或</div>
+
+				<button class="social-btn guest-btn" onclick="guestLogin()">
+					<svg width="18" height="18" viewBox="0 0 24 24" fill="rgba(220,210,180,0.8)"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+					先逛逛（訪客模式）
+				</button>
+
+				<div class="login-footer">遊戲資料將儲存於雲端</div>
 			</div>
-			<div class="login-divider">── 或 ──</div>
-			<button class="social-btn fb-btn" onclick="handleFacebookLogin()" disabled style="opacity:0.5;cursor:not-allowed;">
-				<svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-				使用 Facebook 登入（即將推出）
-			</button>
-			<button id="apple-login-btn" class="social-btn apple-btn" onclick="handleAppleLogin()" disabled style="display:none;opacity:0.5;cursor:not-allowed;">
-				<svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>
-				使用 Apple 登入（即將推出）
-			</button>
-			<div class="login-divider">── 或 ──</div>
-			<button class="social-btn" onclick="guestLogin()" style="background:#555;border:1px solid #888;">
-				<svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-				先逛逛（訪客模式）
-			</button>
 		</div>
 
 		<script>
@@ -441,7 +635,24 @@ body {
 				el.style.display = 'none';
 				el.style.pointerEvents = 'none';
 				el.style.zIndex = '-1';
+				// 暫停所有動畫（節省 GPU）
+				el.querySelectorAll('.login-bg, .login-particles .p, .login-card, .login-logo').forEach(function(e) {
+					e.style.animationPlayState = 'paused';
+				});
+				// 恢復綁定模式下隱藏的元素
+				var card = el.querySelector('.login-card');
+				if (card) {
+					var guestBtn = card.querySelector('.guest-btn');
+					var dividers = card.querySelectorAll('.login-divider');
+					var footer = card.querySelector('.login-footer');
+					var subtitle = card.querySelector('.login-subtitle');
+					if (guestBtn) guestBtn.style.display = 'flex';
+					dividers.forEach(function(d) { d.style.display = 'flex'; });
+					if (footer) footer.style.display = '';
+					if (subtitle) subtitle.textContent = '登入以儲存遊戲進度';
+				}
 			}
+			window._bindMode = false;
 		}
 
 		function parseJwt(token) {
@@ -477,6 +688,7 @@ body {
 			};
 			localStorage.removeItem('_userProfile');
 			localStorage.removeItem('_guestId');
+			localStorage.removeItem('_guestToken');
 			console.log('[GoogleAuth] 已登出');
 			// 登出後強制顯示登入畫面
 			showGoogleLogin();
@@ -484,17 +696,19 @@ body {
 
 		// 顯示登入覆蓋層（供 Godot 呼叫）
 		function showGoogleLogin() {
-			// localhost 測試時使用假資料自動登入
-			if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
-				console.log('[GoogleAuth] localhost 環境，使用測試帳號自動登入');
+			// 開發模式：需同時滿足 localhost + URL 帶 ?dev=1 才啟用
+			if ((location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+				&& new URLSearchParams(location.search).get('dev') === '1') {
+				console.warn('[GoogleAuth] 開發模式自動登入（僅限 localhost + ?dev=1）');
+				var devId = 'dev_' + crypto.getRandomValues(new Uint32Array(1))[0].toString(36);
 				window._googleAuth = {
 					isLoggedIn: true,
-					userId: 'test_local_user',
-					userName: '本地測試玩家',
-					userEmail: 'test@localhost',
+					userId: devId,
+					userName: '開發測試玩家',
+					userEmail: devId + '@dev.local',
 					userAvatar: '',
-					idToken: 'fake_token_for_local_testing',
-					authProvider: 'google',
+					idToken: '',
+					authProvider: 'dev',
 					bindToken: '',
 				};
 				hideLoginOverlay();
@@ -505,27 +719,31 @@ body {
 				el.style.display = 'flex';
 				el.style.pointerEvents = 'auto';
 				el.style.zIndex = '15000';
+				// 恢復動畫
+				el.querySelectorAll('.login-bg, .login-particles .p, .login-card, .login-logo').forEach(function(e) {
+					e.style.animationPlayState = 'running';
+				});
 			}
 		}
 
-		// Facebook 登入預留（尚未實作）
-		function handleFacebookLogin() {
-			console.log('[Auth] Facebook 登入尚未實作');
-		}
-
-		// Apple 登入預留（尚未實作）
-		function handleAppleLogin() {
-			console.log('[Auth] Apple 登入尚未實作');
-		}
-
-		// 訪客登入
+		// 訪客登入（使用加密安全隨機數生成 ID）
 		function guestLogin() {
 			var guestId = localStorage.getItem('_guestId');
 			if (!guestId) {
-				guestId = 'guest_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+				// 使用 crypto.randomUUID（加密安全），fallback 用 crypto.getRandomValues
+				if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+					guestId = 'guest_' + crypto.randomUUID();
+				} else if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+					var buf = new Uint8Array(16);
+					crypto.getRandomValues(buf);
+					guestId = 'guest_' + Array.from(buf).map(function(b) { return b.toString(16).padStart(2,'0'); }).join('');
+				} else {
+					guestId = 'guest_' + Date.now() + '_' + Math.random().toString(36).slice(2, 12);
+				}
 				localStorage.setItem('_guestId', guestId);
 			}
 			var shortId = guestId.slice(-4);
+			var guestToken = localStorage.getItem('_guestToken') || '';
 			window._googleAuth = {
 				isLoggedIn: true,
 				userId: guestId,
@@ -535,6 +753,7 @@ body {
 				idToken: '',
 				authProvider: 'guest',
 				bindToken: '',
+				guestToken: guestToken,
 			};
 			localStorage.setItem('_userProfile', JSON.stringify({
 				userId: guestId,
@@ -551,18 +770,30 @@ body {
 		if (savedProfile && savedProfile.authProvider === 'guest') {
 			window._googleAuth.authProvider = 'guest';
 			window._googleAuth.bindToken = '';
+			window._googleAuth.guestToken = localStorage.getItem('_guestToken') || '';
 		}
 
 		// 訪客綁定 Google 帳號（供 Godot 呼叫）
 		function showBindGoogle() {
 			console.log('[Auth] 開始綁定 Google 帳號流程');
-			// 顯示 Google 登入 UI，但回調改為綁定而非一般登入
 			window._bindMode = true;
 			var el = document.getElementById('google-login-overlay');
 			if (el) {
 				el.style.display = 'flex';
 				el.style.pointerEvents = 'auto';
 				el.style.zIndex = '15000';
+				// 綁定模式：隱藏訪客按鈕和分隔線，只顯示 Google 登入
+				var card = el.querySelector('.login-card');
+				if (card) {
+					var guestBtn = card.querySelector('.guest-btn');
+					var dividers = card.querySelectorAll('.login-divider');
+					var footer = card.querySelector('.login-footer');
+					var subtitle = card.querySelector('.login-subtitle');
+					if (guestBtn) guestBtn.style.display = 'none';
+					dividers.forEach(function(d) { d.style.display = 'none'; });
+					if (footer) footer.style.display = 'none';
+					if (subtitle) subtitle.textContent = '綁定 Google 帳號以保留遊戲資料';
+				}
 			}
 			// 觸發 Google One Tap
 			if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
@@ -570,19 +801,12 @@ body {
 			}
 		}
 
-		// iPhone/iPad 才顯示 Apple 登入按鈕
-		(function() {
-			if (/iPhone|iPad|iPod|Macintosh/i.test(navigator.userAgent)) {
-				var appleBtn = document.getElementById('apple-login-btn');
-				if (appleBtn) appleBtn.style.display = 'flex';
-			}
-		})();
 		</script>
 
 		<script>
 		// Cache busting: 攔截 fetch，為 .pck/.wasm 加版本參數
 		(function() {
-			var V = "f361f53-1774403644";
+			var V = "5895818-1774409182";
 			var _f = window.fetch;
 			window.fetch = function(u) {
 				if (typeof u === "string" && /\.(pck|wasm|js)(\?|$)/.test(u))
@@ -591,9 +815,9 @@ body {
 			};
 		})();
 		</script>
-		<script src="index.js?v=f361f53-1774403644"></script>
+		<script src="index.js?v=5895818-1774409182"></script>
 		<script>
-		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":38011728,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":38062608,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 		const GODOT_THREADS_ENABLED = false;
 		const engine = new Engine(GODOT_CONFIG);
 
