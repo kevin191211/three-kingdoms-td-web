@@ -838,7 +838,7 @@ body {
 		<script>
 		// Cache busting: 攔截 fetch，為 .pck/.wasm 加版本參數
 		(function() {
-			var V = "9495559-1774423779";
+			var V = "b7643be-1774424125";
 			var _f = window.fetch;
 			window.fetch = function(u) {
 				if (typeof u === "string" && /\.(pck|wasm|js)(\?|$)/.test(u))
@@ -847,9 +847,9 @@ body {
 			};
 		})();
 		</script>
-		<script src="index.js?v=9495559-1774423779"></script>
+		<script src="index.js?v=b7643be-1774424125"></script>
 		<script>
-		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":38043712,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":38043744,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 		const GODOT_THREADS_ENABLED = false;
 		const engine = new Engine(GODOT_CONFIG);
 
@@ -941,34 +941,68 @@ body {
 								auto_select: true,
 								use_fedcm_for_prompt: true,
 							});
-							google.accounts.id.prompt(function(notification) {
-							var info = 'moment=' + notification.getMomentType();
-							try { if (notification.isSkippedMoment()) info += ' SKIPPED reason=' + notification.getSkippedReason(); } catch(e){}
-							try { if (notification.isDismissedMoment()) info += ' DISMISSED reason=' + notification.getDismissedReason(); } catch(e){}
-							try { if (notification.isDisplayMoment()) info += ' DISPLAY'; } catch(e){}
-							try { if (notification.isNotDisplayed()) info += ' NOT_DISPLAYED reason=' + notification.getNotDisplayedReason(); } catch(e){}
-							dbg('PROMPT_CB', info);
-							dbg('PROMPT_CB', 'idToken=' + (window._googleAuth.idToken ? '有(' + window._googleAuth.idToken.length + ')' : '無'));
-							dbgFlush();
-							console.log('[GoogleAuth] prompt:', notification.getMomentType());
-							if (notification.isSkippedMoment() || notification.isDismissedMoment()) {
-								if (!window._googleAuth.idToken) {
-									dbg('PROMPT_CB', '→ showGoogleLogin (靜默失敗)');
-									dbgFlush();
-									console.log('[GoogleAuth] 靜默認證失敗，需要重新登入');
-									showGoogleLogin();
-								}
-							}
-							});
-							// 安全網：如果 prompt 完全沒回應（例如被瀏覽器擋），3 秒後檢查
-							setTimeout(function() {
+							var _reAuthTimer = setTimeout(function() {
+
 								if (window._googleAuth.isLoggedIn && !window._googleAuth.idToken) {
-									dbg('TIMEOUT', '3秒逾時 idToken=' + (window._googleAuth.idToken ? '有' : '無'));
+
+									dbg('TIMEOUT', '10秒逾時 idToken=' + (window._googleAuth.idToken ? '有' : '無'));
+
 									dbgFlush();
-									console.log("[GoogleAuth] token 逾時未取得，顯示登入畫面");
+
 									showGoogleLogin();
+
 								}
-							}, 3000);
+
+							}, 10000);
+
+							google.accounts.id.prompt(function(notification) {
+
+								var info = 'moment=' + notification.getMomentType();
+
+								try { if (notification.isSkippedMoment()) info += ' SKIPPED reason=' + notification.getSkippedReason(); } catch(e){}
+
+								try { if (notification.isDismissedMoment()) info += ' DISMISSED reason=' + notification.getDismissedReason(); } catch(e){}
+
+								try { if (notification.isDisplayMoment()) info += ' DISPLAY'; } catch(e){}
+
+								try { if (notification.isNotDisplayed()) info += ' NOT_DISPLAYED reason=' + notification.getNotDisplayedReason(); } catch(e){}
+
+								dbg('PROMPT_CB', info);
+
+								dbg('PROMPT_CB', 'idToken=' + (window._googleAuth.idToken ? '有(' + window._googleAuth.idToken.length + ')' : '無'));
+
+								dbgFlush();
+
+								// One Tap 正在顯示 → 取消 timeout（讓用戶有時間確認）
+
+								if (notification.isDisplayMoment()) {
+
+									clearTimeout(_reAuthTimer);
+
+									dbg('PROMPT_CB', 'One Tap 顯示中，取消 timeout');
+
+									dbgFlush();
+
+								}
+
+								// 被跳過或關閉 → 沒拿到 token 才顯示登入畫面
+
+								if (notification.isSkippedMoment() || notification.isDismissedMoment()) {
+
+									if (!window._googleAuth.idToken) {
+
+										dbg('PROMPT_CB', '→ showGoogleLogin (靜默失敗)');
+
+										dbgFlush();
+
+										showGoogleLogin();
+
+									}
+
+								}
+
+							});
+
 						} else {
 							// GSI 尚未載入，顯示登入畫面
 							dbg('REAUTH', 'GSI 未載入 → showGoogleLogin');
