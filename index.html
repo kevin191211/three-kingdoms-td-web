@@ -208,7 +208,7 @@ body {
 
 /* ── Google 登入覆蓋層 ── */
 #google-login-overlay {
-	display: none;
+	display: flex;
 	position: fixed;
 	top: 0; left: 0; right: 0; bottom: 0;
 	z-index: 15000;
@@ -612,6 +612,9 @@ body {
 		dbg('INIT', '_googleAuth.isLoggedIn=' + window._googleAuth.isLoggedIn + ' provider=' + window._googleAuth.authProvider);
 		if (window._googleAuth.isLoggedIn) {
 			console.log('[GoogleAuth] 從 localStorage 恢復登入:', window._googleAuth.userName);
+			// 已登入→立即隱藏登入遮罩（因為 CSS 預設是可見的）
+			var _ov = document.getElementById('google-login-overlay');
+			if (_ov) { _ov.style.display = 'none'; }
 		}
 
 		function handleGoogleLogin(response) {
@@ -841,7 +844,7 @@ body {
 		<script>
 		// Cache busting: 攔截 fetch，為 .pck/.wasm 加版本參數
 		(function() {
-			var V = "5b0185d-1774422645";
+			var V = "861f0c9-1774422989";
 			var _f = window.fetch;
 			window.fetch = function(u) {
 				if (typeof u === "string" && /\.(pck|wasm|js)(\?|$)/.test(u))
@@ -850,9 +853,9 @@ body {
 			};
 		})();
 		</script>
-		<script src="index.js?v=5b0185d-1774422645"></script>
+		<script src="index.js?v=861f0c9-1774422989"></script>
 		<script>
-		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":38043728,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":38043744,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 		const GODOT_THREADS_ENABLED = false;
 		const engine = new Engine(GODOT_CONFIG);
 
@@ -946,47 +949,28 @@ body {
 							});
 							google.accounts.id.prompt(function(notification) {
 							var info = 'moment=' + notification.getMomentType();
-
 							try { if (notification.isSkippedMoment()) info += ' SKIPPED reason=' + notification.getSkippedReason(); } catch(e){}
-
 							try { if (notification.isDismissedMoment()) info += ' DISMISSED reason=' + notification.getDismissedReason(); } catch(e){}
-
 							try { if (notification.isDisplayMoment()) info += ' DISPLAY'; } catch(e){}
-
 							try { if (notification.isNotDisplayed()) info += ' NOT_DISPLAYED reason=' + notification.getNotDisplayedReason(); } catch(e){}
-
 							dbg('PROMPT_CB', info);
-
 							dbg('PROMPT_CB', 'idToken=' + (window._googleAuth.idToken ? '有(' + window._googleAuth.idToken.length + ')' : '無'));
-
 							dbgFlush();
-
 							console.log('[GoogleAuth] prompt:', notification.getMomentType());
-
 							if (notification.isSkippedMoment() || notification.isDismissedMoment()) {
-
 								if (!window._googleAuth.idToken) {
-
 									dbg('PROMPT_CB', '→ showGoogleLogin (靜默失敗)');
-
 									dbgFlush();
-
 									console.log('[GoogleAuth] 靜默認證失敗，需要重新登入');
-
 									showGoogleLogin();
-
 								}
-
 							}
-
 							});
 							// 安全網：如果 prompt 完全沒回應（例如被瀏覽器擋），3 秒後檢查
 							setTimeout(function() {
 								if (window._googleAuth.isLoggedIn && !window._googleAuth.idToken) {
 									dbg('TIMEOUT', '3秒逾時 idToken=' + (window._googleAuth.idToken ? '有' : '無'));
-
 									dbgFlush();
-
 									console.log("[GoogleAuth] token 逾時未取得，顯示登入畫面");
 									showGoogleLogin();
 								}
@@ -999,14 +983,10 @@ body {
 							showGoogleLogin();
 						}
 					} else {
-						// 給 auto_select 1.5 秒嘗試靜默登入
-						setTimeout(function() {
-							if (window._googleAuth.isLoggedIn) {
-								hideLoginOverlay();
-							} else {
-								showGoogleLogin();
-							}
-						}, 1500);
+						dbg('GODOT_READY', '未登入，登入畫面已顯示（CSS 預設可見）');
+						dbgFlush();
+						// 登入遮罩已經可見（CSS 預設 flex），確保按鈕有渲染
+						showGoogleLogin();
 					}
 				}, displayFailureNotice);
 			}
