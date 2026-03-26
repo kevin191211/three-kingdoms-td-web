@@ -110,11 +110,75 @@ body {
 }
 #status-splash.use-filter--false { image-rendering: pixelated; }
 #status-progress, #status-notice { display: none; }
-#status-progress {
-	bottom: 10%;
-	width: 50%;
-	margin: 0 auto;
+
+/* --- 三國風進度條 --- */
+#status-progress-wrap {
+	position: absolute;
+	bottom: 12%;
+	left: 50%;
+	transform: translateX(-50%);
+	width: min(70%, 320px);
+	display: none;
 }
+#status-progress-label {
+	color: #d4c9a8;
+	font-family: 'Noto Sans', 'Noto Serif TC', serif;
+	font-size: 13px;
+	text-align: center;
+	margin-bottom: 6px;
+	letter-spacing: 2px;
+	text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+}
+#status-progress-track {
+	position: relative;
+	height: 18px;
+	background: linear-gradient(180deg, #1a1209 0%, #2a1f10 50%, #1a1209 100%);
+	border: 2px solid #8b7340;
+	border-radius: 3px;
+	box-shadow: 0 0 8px rgba(139,115,64,0.4), inset 0 1px 3px rgba(0,0,0,0.6);
+	overflow: hidden;
+}
+#status-progress-fill {
+	position: absolute;
+	top: 0; left: 0; bottom: 0;
+	width: 0%;
+	background: linear-gradient(180deg, #c9a530 0%, #a67c00 40%, #c9a530 60%, #8b6914 100%);
+	border-radius: 1px;
+	transition: width 0.3s ease;
+	box-shadow: 0 0 10px rgba(201,165,48,0.5);
+}
+#status-progress-fill::after {
+	content: '';
+	position: absolute;
+	top: 2px; left: 4px; right: 4px;
+	height: 5px;
+	background: linear-gradient(180deg, rgba(255,255,220,0.4), transparent);
+	border-radius: 2px;
+}
+#status-progress-pct {
+	position: absolute;
+	top: 0; left: 0; right: 0; bottom: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #fff;
+	font-family: 'Noto Sans', sans-serif;
+	font-size: 11px;
+	font-weight: bold;
+	text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+	z-index: 1;
+}
+/* 進度條呼吸光暈動畫 */
+@keyframes progressGlow {
+	0%, 100% { box-shadow: 0 0 8px rgba(139,115,64,0.4), inset 0 1px 3px rgba(0,0,0,0.6); }
+	50% { box-shadow: 0 0 14px rgba(201,165,48,0.6), inset 0 1px 3px rgba(0,0,0,0.6); }
+}
+#status-progress-track.active {
+	animation: progressGlow 2s ease-in-out infinite;
+}
+
+/* 隱藏原生 progress */
+#status-progress { display: none !important; }
 #status-notice {
 	background-color: #5b3943;
 	border-radius: 0.5rem;
@@ -402,6 +466,13 @@ body {
 		<div id="status">
 			<img id="status-splash" class="show-image--true fullsize--true use-filter--true" src="index.png" alt="">
 			<progress id="status-progress"></progress>
+			<div id="status-progress-wrap">
+				<div id="status-progress-label"></div>
+				<div id="status-progress-track">
+					<div id="status-progress-fill"></div>
+					<div id="status-progress-pct"></div>
+				</div>
+			</div>
 			<div id="status-notice"></div>
 		</div>
 
@@ -839,7 +910,7 @@ body {
 		<script>
 		// Cache busting: 攔截 fetch，為 .pck/.wasm 加版本參數
 		(function() {
-			var V = "6017ea6-1774545284";
+			var V = "4e23aa0-1774547452";
 			var _f = window.fetch;
 			window.fetch = function(u) {
 				if (typeof u === "string" && /\.(pck|wasm|js)(\?|$)/.test(u))
@@ -848,9 +919,9 @@ body {
 			};
 		})();
 		</script>
-		<script src="index.js?v=6017ea6-1774545284"></script>
+		<script src="index.js?v=4e23aa0-1774547452"></script>
 		<script>
-		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":46826840,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":70206232,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 		const GODOT_THREADS_ENABLED = false;
 		const engine = new Engine(GODOT_CONFIG);
 
@@ -883,6 +954,11 @@ body {
 			const statusOverlay = document.getElementById('status');
 			const statusProgress = document.getElementById('status-progress');
 			const statusNotice = document.getElementById('status-notice');
+			const progressWrap = document.getElementById('status-progress-wrap');
+			const progressFill = document.getElementById('status-progress-fill');
+			const progressPct = document.getElementById('status-progress-pct');
+			const progressLabel = document.getElementById('status-progress-label');
+			const progressTrack = document.getElementById('status-progress-track');
 
 			let initializing = true;
 			let statusMode = '';
@@ -895,7 +971,11 @@ body {
 					return;
 				}
 				statusOverlay.style.visibility = 'visible';
-				statusProgress.style.display = mode === 'progress' ? 'block' : 'none';
+				progressWrap.style.display = mode === 'progress' ? 'block' : 'none';
+				if (mode === 'progress') {
+					progressTrack.classList.add('active');
+					progressLabel.textContent = '\u8F09\u5165\u4E2D...';
+				}
 				statusNotice.style.display = mode === 'notice' ? 'block' : 'none';
 				statusMode = mode;
 			}
@@ -940,11 +1020,13 @@ body {
 				engine.startGame({
 					'onProgress': function (current, total) {
 						if (current > 0 && total > 0) {
-							statusProgress.value = current;
-							statusProgress.max = total;
+							var pct = Math.min(Math.round((current / total) * 100), 100);
+							progressFill.style.width = pct + '%';
+							progressPct.textContent = pct + '%';
+							if (pct >= 100) progressLabel.textContent = '\u555F\u52D5\u904A\u6232...';
 						} else {
-							statusProgress.removeAttribute('value');
-							statusProgress.removeAttribute('max');
+							progressFill.style.width = '0%';
+							progressPct.textContent = '';
 						}
 					},
 				}).then(() => {
