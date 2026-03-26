@@ -910,7 +910,7 @@ body {
 		<script>
 		// Cache busting: 攔截 fetch，為 .pck/.wasm 加版本參數
 		(function() {
-			var V = "4c0b8ed-1774552572";
+			var V = "a85497f-1774553538";
 			var _f = window.fetch;
 			window.fetch = function(u) {
 				if (typeof u === "string" && /\.(pck|wasm|js)(\?|$)/.test(u))
@@ -919,9 +919,9 @@ body {
 			};
 		})();
 		</script>
-		<script src="index.js?v=4c0b8ed-1774552572"></script>
+		<script src="index.js?v=a85497f-1774553538"></script>
 		<script>
-		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":96680308,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":96681972,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 		const GODOT_THREADS_ENABLED = false;
 		const engine = new Engine(GODOT_CONFIG);
 
@@ -1017,10 +1017,28 @@ body {
 				}
 			} else {
 				setStatusMode('progress');
+				var loadState = { lastPct: -1, lastTime: Date.now(), startTime: Date.now(), stallReported: false };
+				var stallCheck = setInterval(function() {
+					var now = Date.now();
+					var elapsed = ((now - loadState.startTime) / 1000).toFixed(1);
+					var stalled = ((now - loadState.lastTime) / 1000).toFixed(1);
+					if (loadState.lastPct >= 0 && (now - loadState.lastTime) > 15000 && !loadState.stallReported) {
+						loadState.stallReported = true;
+						var d = window._authDiag;
+						d.add('LOAD_STALL', 'stuck at ' + loadState.lastPct + '% for ' + stalled + 's (total ' + elapsed + 's)');
+						d.add('LOAD_STALL', 'online=' + navigator.onLine + ' connType=' + ((navigator.connection || {}).effectiveType || 'unknown'));
+						d.send();
+					}
+				}, 5000);
 				engine.startGame({
 					'onProgress': function (current, total) {
 						if (current > 0 && total > 0) {
 							var pct = Math.min(Math.round((current / total) * 100), 100);
+							if (pct !== loadState.lastPct) {
+								loadState.lastPct = pct;
+								loadState.lastTime = Date.now();
+								loadState.stallReported = false;
+							}
 							progressFill.style.width = pct + '%';
 							progressPct.textContent = pct + '%';
 							if (pct >= 100) progressLabel.textContent = '\u555F\u52D5\u904A\u6232...';
@@ -1030,6 +1048,8 @@ body {
 						}
 					},
 				}).then(() => {
+					clearInterval(stallCheck);
+					window._authDiag.add('LOAD_OK', 'loaded in ' + ((Date.now() - loadState.startTime) / 1000).toFixed(1) + 's');
 					setStatusMode('hidden');
 					var d = window._authDiag; d.add('INIT', 'savedProfile=' + (localStorage.getItem('_userProfile') ? 'YES' : 'NO') + ' sessionToken=' + (localStorage.getItem('_sessionToken') ? 'YES' : 'NO') + ' isLoggedIn=' + window._googleAuth.isLoggedIn + ' provider=' + window._googleAuth.authProvider + ' idToken=' + (window._googleAuth.idToken ? 'YES' : 'NO') + ' GSI=' + (typeof google !== 'undefined' && google.accounts && google.accounts.id ? 'YES' : 'NO')); dbg('GODOT_READY', 'isLoggedIn=' + window._googleAuth.isLoggedIn + ' provider=' + window._googleAuth.authProvider + ' idToken=' + (window._googleAuth.idToken ? '有(' + window._googleAuth.idToken.length + ')' : '無'));
 					dbg('GODOT_READY', 'GSI loaded=' + (typeof google !== 'undefined' && google.accounts && google.accounts.id ? 'YES' : 'NO'));
@@ -1125,7 +1145,13 @@ body {
 							}
 						}, 1500);
 					}
-				}, displayFailureNotice);
+				}, function(err) {
+					clearInterval(stallCheck);
+					var d = window._authDiag;
+					d.add('LOAD_FAIL', 'pct=' + loadState.lastPct + '% elapsed=' + ((Date.now() - loadState.startTime) / 1000).toFixed(1) + 's err=' + (err && err.message ? err.message : String(err)));
+					d.send();
+					displayFailureNotice(err);
+				});
 			}
 		}());
 		</script>
