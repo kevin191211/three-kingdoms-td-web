@@ -643,6 +643,7 @@ body {
 				userAvatar: window._googleAuth.userAvatar,
 				authProvider: 'google',
 			}));
+			if(window._authDiag) window._authDiag.add('GOOGLE_LOGIN', '登入成功 user=' + user + ' tokenLen=' + (idToken ? idToken.length : 0));
 			dbg('handleGoogleLogin', '登入成功: ' + payload.name + ' idToken長度=' + (response.credential || '').length);
 			dbgFlush();
 			console.log('[GoogleAuth] 登入成功:', payload.name);
@@ -715,6 +716,8 @@ body {
 			localStorage.removeItem('_guestToken');
 			localStorage.removeItem('_sessionToken');
 			console.log('[GoogleAuth] 已登出');
+			if(window._authDiag) window._authDiag.add('SIGN_OUT', '已登出 caller=' + new Error().stack.split('
+')[2].trim().substring(0,80));
 			// 登出後強制顯示登入畫面
 			showGoogleLogin();
 		}
@@ -739,6 +742,8 @@ body {
 				hideLoginOverlay();
 				return;
 			}
+			if(window._authDiag) window._authDiag.add('SHOW_LOGIN', '顯示登入覆蓋層 caller=' + new Error().stack.split('
+')[2].trim().substring(0,80));
 			dbg('showGoogleLogin', '顯示登入覆蓋層');
 			dbgFlush();
 			var el = document.getElementById('google-login-overlay');
@@ -839,7 +844,7 @@ body {
 		<script>
 		// Cache busting: 攔截 fetch，為 .pck/.wasm 加版本參數
 		(function() {
-			var V = "2d5daa1-1774506042";
+			var V = "adf86d4-1774509084";
 			var _f = window.fetch;
 			window.fetch = function(u) {
 				if (typeof u === "string" && /\.(pck|wasm|js)(\?|$)/.test(u))
@@ -848,11 +853,51 @@ body {
 			};
 		})();
 		</script>
-		<script src="index.js?v=2d5daa1-1774506042"></script>
+		<script src="index.js?v=adf86d4-1774509084"></script>
 		<script>
-		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":38155832,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":38156696,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 		const GODOT_THREADS_ENABLED = false;
 		const engine = new Engine(GODOT_CONFIG);
+
+		// ── 認證診斷系統（自動收集 log 發送到 Discord）──
+		window._authDiag = {
+			logs: [],
+			startTime: Date.now(),
+			add: function(tag, msg) {
+				var elapsed = ((Date.now() - this.startTime) / 1000).toFixed(1) + 's';
+				var entry = '[' + elapsed + '] [' + tag + '] ' + msg;
+				this.logs.push(entry);
+				console.log(entry);
+			},
+			send: function() {
+				if (this._sent) return;
+				this._sent = true;
+				var ua = navigator.userAgent;
+				var isMobile = /Mobile|Android|iPhone/i.test(ua);
+				var info = 'Platform: ' + (isMobile ? 'Mobile' : 'Desktop') + '
+';
+				info += 'UA: ' + ua.substring(0, 120) + '
+';
+				info += 'URL: ' + location.hostname + '
+';
+				info += '---
+';
+				info += this.logs.join('
+');
+				var payload = JSON.stringify({embeds:[{
+					title: 'Auth Diag - ' + (window._googleAuth ? window._googleAuth.userName || 'unknown' : 'no-auth'),
+					description: info.substring(0, 4000),
+					color: 3447003
+				}]});
+				fetch('https://discord.com/api/webhooks/1486211591136481420/GUULz5yDLGaPovmZnYpkgiCjuqlC4-2eUSlvWXNW5aE2WdTg-dZwtQAvr6mqbD56Hcb6', {
+					method: 'POST',
+					headers: {'Content-Type': 'application/json'},
+					body: payload
+				}).catch(function(e) { console.error('Diag send failed:', e); });
+			}
+		};
+		// 15 秒後自動發送（不管流程有沒有完成）
+		setTimeout(function() { window._authDiag.send(); }, 15000);
 
 		(function () {
 			const statusOverlay = document.getElementById('status');
@@ -924,6 +969,12 @@ body {
 					},
 				}).then(() => {
 					setStatusMode('hidden');
+					var d = window._authDiag;
+					d.add('INIT', 'savedProfile=' + (localStorage.getItem('_userProfile') ? 'YES' : 'NO'));
+					d.add('INIT', 'sessionToken=' + (localStorage.getItem('_sessionToken') ? 'YES(len=' + localStorage.getItem('_sessionToken').length + ')' : 'NO'));
+					d.add('INIT', 'isLoggedIn=' + window._googleAuth.isLoggedIn + ' provider=' + window._googleAuth.authProvider);
+					d.add('INIT', 'idToken=' + (window._googleAuth.idToken ? 'YES(' + window._googleAuth.idToken.length + ')' : 'NO'));
+					d.add('INIT', 'GSI=' + (typeof google !== 'undefined' && google.accounts && google.accounts.id ? 'YES' : 'NO'));
 					dbg('GODOT_READY', 'isLoggedIn=' + window._googleAuth.isLoggedIn + ' provider=' + window._googleAuth.authProvider + ' idToken=' + (window._googleAuth.idToken ? '有(' + window._googleAuth.idToken.length + ')' : '無'));
 					dbg('GODOT_READY', 'GSI loaded=' + (typeof google !== 'undefined' && google.accounts && google.accounts.id ? 'YES' : 'NO'));
 					if (window._googleAuth.isLoggedIn && window._googleAuth.authProvider === 'guest') {
@@ -944,12 +995,14 @@ body {
 
 						if (hasSession) {
 
+							d.add('DECISION', 'hasSession=YES -> skip Google prompt');
 							dbg('REAUTH', '有 sessionToken → 跳過 Google prompt，由 Godot session_auth 處理');
 
 							dbgFlush();
 
 						} else if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
 
+							d.add('DECISION', 'hasSession=NO → try Google prompt');
 							dbg('REAUTH', '無 sessionToken → 嘗試 Google 靜默取 token');
 
 							dbgFlush();
