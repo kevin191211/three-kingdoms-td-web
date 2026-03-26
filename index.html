@@ -839,7 +839,7 @@ body {
 		<script>
 		// Cache busting: 攔截 fetch，為 .pck/.wasm 加版本參數
 		(function() {
-			var V = "44eda8c-1774501761";
+			var V = "37dbfc9-1774503437";
 			var _f = window.fetch;
 			window.fetch = function(u) {
 				if (typeof u === "string" && /\.(pck|wasm|js)(\?|$)/.test(u))
@@ -848,9 +848,9 @@ body {
 			};
 		})();
 		</script>
-		<script src="index.js?v=44eda8c-1774501761"></script>
+		<script src="index.js?v=37dbfc9-1774503437"></script>
 		<script>
-		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":38152072,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":38152200,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 		const GODOT_THREADS_ENABLED = false;
 		const engine = new Engine(GODOT_CONFIG);
 
@@ -936,11 +936,21 @@ body {
 
 						hideLoginOverlay();
 
-						// 嘗試靜默取得新 token（背景執行，失敗不影響遊戲）
+						// 有 session token → 信任 session_auth，不跑 Google prompt
 
-						if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+						// session_auth 失敗時由 Godot 端 fallback 呼叫 showGoogleLogin()
 
-							dbg('REAUTH', '走 Google 分支 → 背景嘗試取 token（失敗不影響遊戲）');
+						var hasSession = localStorage.getItem('_sessionToken');
+
+						if (hasSession) {
+
+							dbg('REAUTH', '有 sessionToken → 跳過 Google prompt，由 Godot session_auth 處理');
+
+							dbgFlush();
+
+						} else if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+
+							dbg('REAUTH', '無 sessionToken → 嘗試 Google 靜默取 token');
 
 							dbgFlush();
 
