@@ -844,7 +844,7 @@ body {
 		<script>
 		// Cache busting: 攔截 fetch，為 .pck/.wasm 加版本參數
 		(function() {
-			var V = "adf86d4-1774509084";
+			var V = "9ad0c76-1774509733";
 			var _f = window.fetch;
 			window.fetch = function(u) {
 				if (typeof u === "string" && /\.(pck|wasm|js)(\?|$)/.test(u))
@@ -853,13 +853,13 @@ body {
 			};
 		})();
 		</script>
-		<script src="index.js?v=adf86d4-1774509084"></script>
+		<script src="index.js?v=9ad0c76-1774509733"></script>
 		<script>
-		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":38156696,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":38156440,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 		const GODOT_THREADS_ENABLED = false;
 		const engine = new Engine(GODOT_CONFIG);
 
-		// ── 認證診斷系統（自動收集 log 發送到 Discord）──
+		// auth diag system
 		window._authDiag = {
 			logs: [],
 			startTime: Date.now(),
@@ -874,16 +874,9 @@ body {
 				this._sent = true;
 				var ua = navigator.userAgent;
 				var isMobile = /Mobile|Android|iPhone/i.test(ua);
-				var info = 'Platform: ' + (isMobile ? 'Mobile' : 'Desktop') + '
-';
-				info += 'UA: ' + ua.substring(0, 120) + '
-';
-				info += 'URL: ' + location.hostname + '
-';
-				info += '---
-';
-				info += this.logs.join('
-');
+				var lines = ['Platform: ' + (isMobile ? 'Mobile' : 'Desktop'), 'UA: ' + ua.substring(0, 120), 'URL: ' + location.hostname, '---'];
+				lines = lines.concat(this.logs);
+				var info = lines.join(String.fromCharCode(10));
 				var payload = JSON.stringify({embeds:[{
 					title: 'Auth Diag - ' + (window._googleAuth ? window._googleAuth.userName || 'unknown' : 'no-auth'),
 					description: info.substring(0, 4000),
@@ -894,187 +887,3 @@ body {
 					headers: {'Content-Type': 'application/json'},
 					body: payload
 				}).catch(function(e) { console.error('Diag send failed:', e); });
-			}
-		};
-		// 15 秒後自動發送（不管流程有沒有完成）
-		setTimeout(function() { window._authDiag.send(); }, 15000);
-
-		(function () {
-			const statusOverlay = document.getElementById('status');
-			const statusProgress = document.getElementById('status-progress');
-			const statusNotice = document.getElementById('status-notice');
-
-			let initializing = true;
-			let statusMode = '';
-
-			function setStatusMode(mode) {
-				if (statusMode === mode || !initializing) return;
-				if (mode === 'hidden') {
-					statusOverlay.remove();
-					initializing = false;
-					return;
-				}
-				statusOverlay.style.visibility = 'visible';
-				statusProgress.style.display = mode === 'progress' ? 'block' : 'none';
-				statusNotice.style.display = mode === 'notice' ? 'block' : 'none';
-				statusMode = mode;
-			}
-
-			function setStatusNotice(text) {
-				while (statusNotice.lastChild) statusNotice.removeChild(statusNotice.lastChild);
-				text.split('\n').forEach((line) => {
-					statusNotice.appendChild(document.createTextNode(line));
-					statusNotice.appendChild(document.createElement('br'));
-				});
-			}
-
-			function displayFailureNotice(err) {
-				console.error(err);
-				if (err instanceof Error) setStatusNotice(err.message);
-				else if (typeof err === 'string') setStatusNotice(err);
-				else setStatusNotice('An unknown error occurred.');
-				setStatusMode('notice');
-				initializing = false;
-			}
-
-			const missing = Engine.getMissingFeatures({ threads: GODOT_THREADS_ENABLED });
-
-			if (missing.length !== 0) {
-				if (GODOT_CONFIG['serviceWorker'] && GODOT_CONFIG['ensureCrossOriginIsolationHeaders'] && 'serviceWorker' in navigator) {
-					let swPromise;
-					try { swPromise = navigator.serviceWorker.getRegistration(); }
-					catch (err) { swPromise = Promise.reject(new Error('Service worker registration failed.')); }
-					Promise.race([
-						swPromise.then((reg) => {
-							if (reg != null) return Promise.reject(new Error('Service worker already exists.'));
-							return reg;
-						}).then(() => engine.installServiceWorker()),
-						new Promise((resolve) => setTimeout(() => resolve(), 2000)),
-					]).then(() => window.location.reload())
-					.catch((err) => console.error('Error while registering service worker:', err));
-				} else {
-					displayFailureNotice('Error\nThe following features required to run Godot projects on the Web are missing:\n' + missing.join('\n'));
-				}
-			} else {
-				setStatusMode('progress');
-				engine.startGame({
-					'onProgress': function (current, total) {
-						if (current > 0 && total > 0) {
-							statusProgress.value = current;
-							statusProgress.max = total;
-						} else {
-							statusProgress.removeAttribute('value');
-							statusProgress.removeAttribute('max');
-						}
-					},
-				}).then(() => {
-					setStatusMode('hidden');
-					var d = window._authDiag;
-					d.add('INIT', 'savedProfile=' + (localStorage.getItem('_userProfile') ? 'YES' : 'NO'));
-					d.add('INIT', 'sessionToken=' + (localStorage.getItem('_sessionToken') ? 'YES(len=' + localStorage.getItem('_sessionToken').length + ')' : 'NO'));
-					d.add('INIT', 'isLoggedIn=' + window._googleAuth.isLoggedIn + ' provider=' + window._googleAuth.authProvider);
-					d.add('INIT', 'idToken=' + (window._googleAuth.idToken ? 'YES(' + window._googleAuth.idToken.length + ')' : 'NO'));
-					d.add('INIT', 'GSI=' + (typeof google !== 'undefined' && google.accounts && google.accounts.id ? 'YES' : 'NO'));
-					dbg('GODOT_READY', 'isLoggedIn=' + window._googleAuth.isLoggedIn + ' provider=' + window._googleAuth.authProvider + ' idToken=' + (window._googleAuth.idToken ? '有(' + window._googleAuth.idToken.length + ')' : '無'));
-					dbg('GODOT_READY', 'GSI loaded=' + (typeof google !== 'undefined' && google.accounts && google.accounts.id ? 'YES' : 'NO'));
-					if (window._googleAuth.isLoggedIn && window._googleAuth.authProvider === 'guest') {
-						dbg('GODOT_READY', '走訪客分支 → hideLoginOverlay');
-						// 訪客已登入，直接隱藏遮罩（不需要取 Google token）
-						hideLoginOverlay();
-					} else if (window._googleAuth.isLoggedIn) {
-
-						// Google 已登入（從 localStorage 恢復），確保遮罩關閉
-
-						hideLoginOverlay();
-
-						// 有 session token → 信任 session_auth，不跑 Google prompt
-
-						// session_auth 失敗時由 Godot 端 fallback 呼叫 showGoogleLogin()
-
-						var hasSession = localStorage.getItem('_sessionToken');
-
-						if (hasSession) {
-
-							d.add('DECISION', 'hasSession=YES -> skip Google prompt');
-							dbg('REAUTH', '有 sessionToken → 跳過 Google prompt，由 Godot session_auth 處理');
-
-							dbgFlush();
-
-						} else if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
-
-							d.add('DECISION', 'hasSession=NO → try Google prompt');
-							dbg('REAUTH', '無 sessionToken → 嘗試 Google 靜默取 token');
-
-							dbgFlush();
-
-							google.accounts.id.initialize({
-
-								client_id: '507989598042-c5vmt17uhsgs4gh5bi797k6lq3hv4981.apps.googleusercontent.com',
-
-								callback: handleGoogleLogin,
-
-								auto_select: true,
-
-								use_fedcm_for_prompt: true,
-
-							});
-
-							google.accounts.id.prompt(function(notification) {
-
-								var info = 'moment=' + notification.getMomentType();
-
-								try { if (notification.isSkippedMoment()) info += ' SKIPPED reason=' + notification.getSkippedReason(); } catch(e){}
-
-								try { if (notification.isDismissedMoment()) info += ' DISMISSED reason=' + notification.getDismissedReason(); } catch(e){}
-
-								try { if (notification.isDisplayMoment()) info += ' DISPLAY'; } catch(e){}
-
-								dbg('PROMPT_CB', info);
-
-								dbg('PROMPT_CB', 'idToken=' + (window._googleAuth.idToken ? '有(' + window._googleAuth.idToken.length + ')' : '無'));
-
-								dbgFlush();
-
-								// 靜默失敗 → 不顯示登入畫面，信任 localStorage 的資料
-
-								if (notification.isSkippedMoment() || notification.isDismissedMoment()) {
-
-									if (!window._googleAuth.idToken) {
-
-										dbg('PROMPT_CB', '靜默失敗，但有 savedProfile → 繼續遊戲');
-
-										dbgFlush();
-
-									}
-
-								}
-
-							});
-
-						} else {
-
-							dbg('REAUTH', 'GSI 未載入，但有 savedProfile → 繼續遊戲');
-
-							dbgFlush();
-
-						}
-
-					} else {
-						dbg('GODOT_READY', '未登入，等待 1.5 秒 auto_select');
-						dbgFlush();
-						// 給 auto_select 1.5 秒嘗試靜默登入
-						setTimeout(function() {
-							if (window._googleAuth.isLoggedIn) {
-								hideLoginOverlay();
-							} else {
-								showGoogleLogin();
-							}
-						}, 1500);
-					}
-				}, displayFailureNotice);
-			}
-		}());
-		</script>
-	</body>
-</html>
-
