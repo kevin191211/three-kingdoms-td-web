@@ -651,32 +651,74 @@ body {
 		})();
 		</script>
 
-		<input id="godot-kb" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
-			style="position:fixed;z-index:10000;display:none;opacity:0.01;font-size:16px;border:none;outline:none;background:transparent;color:transparent;caret-color:transparent;padding:0;margin:0;">
 		<script>
-		// ── 手機虛擬鍵盤輔助 ──
-		// Godot 的 DisplayServer.virtual_keyboard_show() 在手機瀏覽器上不可靠，
-		// 因為觸控事件被 canvas 攔截後，到 GDScript 信號觸發時已脫離瀏覽器的「使用者手勢」上下文。
-		// 解法：在 touchstart（使用者手勢上下文內）直接 focus 一個真實的 HTML input。
+		// ── 手機虛擬鍵盤輔助 v2 ──
+		// 為每個 Godot LineEdit 建立一個真實的 HTML <input> 覆蓋在上方，
+		// 使用者直接點擊 HTML input 即可觸發鍵盤（不依賴 programmatic focus）。
 		(function() {
 			if (!/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) return;
 
-			var inp = document.getElementById('godot-kb');
+			var container = document.createElement('div');
+			container.id = 'gkb-container';
+			container.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10000;';
+			document.body.appendChild(container);
+
 			window._gkb = {
 				zones: {},
 				active: null,
 				register: function(id, ml) {
-					this.zones[id] = {x:0, y:0, w:0, h:0, maxLen:ml||50, text:'', changed:false};
+					var inp = document.createElement('input');
+					inp.type = 'text';
+					inp.autocomplete = 'off';
+					inp.autocorrect = 'off';
+					inp.autocapitalize = 'off';
+					inp.spellcheck = false;
+					inp.maxLength = ml || 50;
+					inp.dataset.zoneId = id;
+					inp.style.cssText = 'position:absolute;pointer-events:auto;opacity:0.01;font-size:16px;border:none;outline:none;background:transparent;color:transparent;caret-color:transparent;padding:0;margin:0;box-sizing:border-box;';
+					container.appendChild(inp);
+
+					var self = this;
+					inp.addEventListener('input', function() {
+						var z = self.zones[id];
+						if (z) { z.text = inp.value; z.changed = true; }
+					});
+					inp.addEventListener('focus', function() {
+						self.active = id;
+					});
+					inp.addEventListener('blur', function() {
+						var z = self.zones[id];
+						if (z) z.changed = true;
+						if (self.active === id) self.active = null;
+					});
+					inp.addEventListener('keydown', function(e) {
+						if (e.key === 'Enter') inp.blur();
+					});
+
+					this.zones[id] = {inp: inp, text: '', changed: false};
 				},
 				setPos: function(id, x, y, w, h) {
-					var z = this.zones[id]; if (z) { z.x=x; z.y=y; z.w=w; z.h=h; }
+					var z = this.zones[id];
+					if (!z) return;
+					var canvas = document.getElementById('canvas');
+					var r = canvas.getBoundingClientRect();
+					z.inp.style.left = (r.left + x) + 'px';
+					z.inp.style.top = (r.top + y) + 'px';
+					z.inp.style.width = Math.max(w, 10) + 'px';
+					z.inp.style.height = Math.max(h, 10) + 'px';
 				},
 				unregister: function(id) {
-					delete this.zones[id];
-					if (this.active === id) { inp.blur(); this.active = null; }
+					var z = this.zones[id];
+					if (z) {
+						z.inp.blur();
+						z.inp.remove();
+						delete this.zones[id];
+					}
+					if (this.active === id) this.active = null;
 				},
 				setText: function(id, t) {
-					var z = this.zones[id]; if (z) { z.text = t; if (this.active === id) inp.value = t; }
+					var z = this.zones[id];
+					if (z) { z.text = t; z.inp.value = t; }
 				},
 				pollText: function(id) {
 					var z = this.zones[id];
@@ -685,50 +727,6 @@ body {
 					return z.text;
 				}
 			};
-
-			var canvas = document.getElementById('canvas');
-			canvas.addEventListener('touchstart', function(e) {
-				var t = e.touches[0];
-				var r = canvas.getBoundingClientRect();
-				var tx = t.clientX - r.left, ty = t.clientY - r.top;
-				var kb = window._gkb;
-
-				for (var id in kb.zones) {
-					var z = kb.zones[id];
-					if (tx >= z.x && tx <= z.x + z.w && ty >= z.y && ty <= z.y + z.h) {
-						inp.value = z.text;
-						inp.maxLength = z.maxLen;
-						inp.style.left = (r.left + z.x) + 'px';
-						inp.style.top = (r.top + z.y) + 'px';
-						inp.style.width = Math.max(z.w, 10) + 'px';
-						inp.style.height = Math.max(z.h, 10) + 'px';
-						inp.style.display = 'block';
-						kb.active = id;
-						inp.focus();
-						e.preventDefault();
-						e.stopPropagation();
-						return;
-					}
-				}
-				if (kb.active) inp.blur();
-			}, {passive: false, capture: true});
-
-			inp.addEventListener('input', function() {
-				var kb = window._gkb;
-				if (kb.active && kb.zones[kb.active]) {
-					kb.zones[kb.active].text = inp.value;
-					kb.zones[kb.active].changed = true;
-				}
-			});
-			inp.addEventListener('blur', function() {
-				inp.style.display = 'none';
-				var kb = window._gkb;
-				if (kb.active && kb.zones[kb.active]) kb.zones[kb.active].changed = true;
-				kb.active = null;
-			});
-			inp.addEventListener('keydown', function(e) {
-				if (e.key === 'Enter') inp.blur();
-			});
 		})();
 		</script>
 
@@ -1141,7 +1139,7 @@ body {
 		<script>
 		// Cache busting: 攔截 fetch，為 .pck/.wasm 加版本參數
 		(function() {
-			var V = "8b0e1aa-1774615011";
+			var V = "17f6109-1774615914";
 			var _f = window.fetch;
 			window.fetch = function(u) {
 				if (typeof u === "string" && /\.(pck|wasm|js)(\?|$)/.test(u))
@@ -1150,9 +1148,9 @@ body {
 			};
 		})();
 		</script>
-		<script src="index.js?v=8b0e1aa-1774615011"></script>
+		<script src="index.js?v=17f6109-1774615914"></script>
 		<script>
-		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":43739712,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":43738688,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 		const GODOT_THREADS_ENABLED = false;
 		const engine = new Engine(GODOT_CONFIG);
 
