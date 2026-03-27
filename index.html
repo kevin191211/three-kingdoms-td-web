@@ -196,6 +196,79 @@ body {
 		<link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
 <link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
 
+		<!-- Google Ad Placement API (H5 Games Ads) -->
+		<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8320734474859568" crossorigin="anonymous"></script>
+		<script>
+		// ── 廣告橋接：供 Godot JavaScriptBridge 呼叫 ──
+		window._rewardedAd = {
+			ready: false,
+			watching: false,
+			result: null,   // "rewarded" | "dismissed" | "error"
+			errorMsg: "",
+
+			init: function() {
+				// adBreak / adConfig 由 Google Ad Placement API 注入
+				if (typeof adConfig === 'function') {
+					adConfig({
+						preloadAdBreaks: 'on',
+						onReady: function() {
+							console.log('[Ad] Ad Placement API ready');
+							window._rewardedAd.ready = true;
+						}
+					});
+				} else {
+					console.warn('[Ad] adConfig not available, ads will use fallback');
+				}
+			},
+
+			show: function() {
+				window._rewardedAd.watching = true;
+				window._rewardedAd.result = null;
+				window._rewardedAd.errorMsg = "";
+
+				if (typeof adBreak === 'function') {
+					adBreak({
+						type: 'reward',
+						name: 'watch_ad_for_gems',
+						beforeReward: function(showAdFn) {
+							showAdFn();
+						},
+						adDismissed: function() {
+							console.log('[Ad] dismissed');
+							window._rewardedAd.watching = false;
+							window._rewardedAd.result = "dismissed";
+						},
+						adViewed: function() {
+							console.log('[Ad] viewed / rewarded');
+							window._rewardedAd.watching = false;
+							window._rewardedAd.result = "rewarded";
+						},
+						adBreakDone: function(placementInfo) {
+							console.log('[Ad] adBreakDone:', placementInfo.breakStatus);
+							if (placementInfo.breakStatus === 'notReady' ||
+								placementInfo.breakStatus === 'frequencyCapped' ||
+								placementInfo.breakStatus === 'other') {
+								// 廣告不可用 → fallback 模擬
+								window._rewardedAd._fallback();
+							}
+						}
+					});
+				} else {
+					// SDK 未載入 → fallback 模擬
+					window._rewardedAd._fallback();
+				}
+			},
+
+			_fallback: function() {
+				// 開發/測試用：模擬 5 秒廣告
+				console.log('[Ad] fallback: simulating 5s ad');
+				setTimeout(function() {
+					window._rewardedAd.watching = false;
+					window._rewardedAd.result = "rewarded";
+				}, 5000);
+			}
+		};
+		</script>
 		<!-- Google Identity Services SDK -->
 		<script src="https://accounts.google.com/gsi/client" async defer></script>
 		<!-- Facebook SDK -->
@@ -1068,7 +1141,7 @@ body {
 		<script>
 		// Cache busting: 攔截 fetch，為 .pck/.wasm 加版本參數
 		(function() {
-			var V = "ce6f368-1774605435";
+			var V = "93b7b8e-1774614061";
 			var _f = window.fetch;
 			window.fetch = function(u) {
 				if (typeof u === "string" && /\.(pck|wasm|js)(\?|$)/.test(u))
@@ -1077,9 +1150,9 @@ body {
 			};
 		})();
 		</script>
-		<script src="index.js?v=ce6f368-1774605435"></script>
+		<script src="index.js?v=93b7b8e-1774614061"></script>
 		<script>
-		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":29520420,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":43739792,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 		const GODOT_THREADS_ENABLED = false;
 		const engine = new Engine(GODOT_CONFIG);
 
@@ -1188,6 +1261,9 @@ body {
 						d.send();
 					}
 				}, 5000);
+				// 初始化廣告系統
+				if (window._rewardedAd) window._rewardedAd.init();
+
 				engine.startGame({
 					'onProgress': function (current, total) {
 						if (current > 0 && total > 0) {
