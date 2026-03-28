@@ -23,6 +23,7 @@ body {
 	display: block;
 	width: 100vw !important;
 	height: 100vh !important;
+	height: 100dvh !important;
 }
 #canvas:focus {
 	outline: none;
@@ -1390,6 +1391,23 @@ body {
 				});
 			}
 		}());
+		</script>
+		<script>
+		// 修正手機瀏覽器地址列導致底部按鈕被切掉的問題
+		(function() {
+			function resize() {
+				var c = document.getElementById('canvas');
+				if (!c) return;
+				if (window.visualViewport) {
+					c.style.height = window.visualViewport.height + 'px';
+					c.style.width = window.visualViewport.width + 'px';
+				}
+			}
+			if (window.visualViewport) {
+				window.visualViewport.addEventListener('resize', resize);
+				resize();
+			}
+		})();
 		</script>
 	</body>
 </html>
