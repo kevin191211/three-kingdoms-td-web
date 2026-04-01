@@ -116,6 +116,7 @@
   <div class="header">
     <h1>問題回報</h1>
     <p>遇到 Bug 嗎？請告訴我們，我們會盡快修復！</p>
+    <p id="rewardHint" style="font-size:12px; margin-top:6px;"></p>
   </div>
 
   <form id="bugForm">
@@ -160,6 +161,8 @@ const MAX_PHOTOS = 5;
 const params = new URLSearchParams(location.search);
 const gameVersion = params.get("v") || "";
 const playerName = params.get("name") || "";
+var sessionToken = params.get("token") || "";
+var isLoggedIn = !!sessionToken;
 const gameStateRaw = params.get("state") || "";
 
 let gameState = null;
@@ -167,6 +170,18 @@ if (gameStateRaw) {
   try { gameState = JSON.parse(decodeURIComponent(gameStateRaw)); } catch {}
 }
 if (playerName) document.getElementById("playerName").value = playerName;
+
+// 獎勵提示
+var rewardHint = document.getElementById("rewardHint");
+if (rewardHint) {
+  if (isLoggedIn) {
+    rewardHint.textContent = "已登入帳號回報，確認有效可獲得 30 鑽石獎勵";
+    rewardHint.style.color = "var(--success)";
+  } else {
+    rewardHint.textContent = "匿名回報（登入遊戲帳號後回報可獲得獎勵）";
+    rewardHint.style.color = "var(--text-dim)";
+  }
+}
 
 const deviceInfo = [
   navigator.userAgent,
@@ -295,6 +310,7 @@ document.getElementById("bugForm").addEventListener("submit", async function(e) 
     var payload = {
       description: desc,
       player_name: document.getElementById("playerName").value.trim() || null,
+      session_token: sessionToken || null,
       screenshots: screenshots.length > 0 ? screenshots : null,
       device_info: deviceInfo,
       game_version: gameVersion || null,
