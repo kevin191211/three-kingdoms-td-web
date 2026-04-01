@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>三國迷宮塔防 - 問題回報</title>
+<style>
+  :root {
+    --gold: #c8a864;
+    --gold-dim: rgba(200,170,100,0.3);
+    --bg: #0a0910;
+    --bg2: #151220;
+    --text: #e8dcc8;
+    --text-dim: rgba(232,220,200,0.5);
+    --danger: #e85050;
+    --success: #50c878;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Noto Sans TC','Microsoft JhengHei','PingFang TC',sans-serif;
+    background: linear-gradient(170deg, #0a0910 0%, #12100a 40%, #0d1018 100%);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 16px;
+  }
+  .container { max-width: 480px; margin: 0 auto; }
+  .header { text-align: center; margin-bottom: 20px; }
+  .header h1 { font-size: 20px; color: var(--gold); letter-spacing: 2px; margin-bottom: 4px; }
+  .header p { font-size: 13px; color: var(--text-dim); }
+  .form-group { margin-bottom: 14px; }
+  label { display: block; font-size: 14px; color: var(--gold); margin-bottom: 4px; letter-spacing: 1px; }
+  label .optional { font-size: 11px; color: var(--text-dim); font-weight: normal; }
+  input[type="text"], textarea {
+    width: 100%; background: var(--bg2); border: 1px solid var(--gold-dim);
+    border-radius: 6px; color: var(--text); font-size: 15px; padding: 10px 12px;
+    outline: none; transition: border-color 0.2s; font-family: inherit;
+  }
+  input[type="text"]:focus, textarea:focus { border-color: var(--gold); }
+  textarea { resize: vertical; min-height: 100px; max-height: 300px; }
+
+  /* 截圖上傳 */
+  .upload-area {
+    border: 2px dashed var(--gold-dim); border-radius: 8px; padding: 20px;
+    text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s;
+    position: relative;
+  }
+  .upload-area:hover, .upload-area.drag-over {
+    border-color: var(--gold); background: rgba(200,170,100,0.05);
+  }
+  .upload-area .icon {
+    width: 36px; height: 36px; margin: 0 auto 8px;
+    border: 2px solid var(--gold-dim); border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--gold-dim); font-size: 20px;
+  }
+  .upload-area p { font-size: 13px; color: var(--text-dim); }
+  .upload-area input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer;
+  }
+
+  /* 多張截圖預覽 */
+  .previews {
+    display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;
+  }
+  .preview-item {
+    position: relative; width: 90px; height: 90px;
+    border-radius: 6px; overflow: hidden;
+    border: 1px solid var(--gold-dim);
+  }
+  .preview-item img {
+    width: 100%; height: 100%; object-fit: cover;
+  }
+  .preview-item .remove-btn {
+    position: absolute; top: 2px; right: 2px;
+    width: 20px; height: 20px; background: var(--danger);
+    color: #fff; border: none; border-radius: 50%;
+    font-size: 12px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; line-height: 1;
+  }
+  .photo-count {
+    font-size: 12px; color: var(--text-dim); margin-top: 4px;
+  }
+
+  /* 裝置資訊 */
+  .device-info {
+    font-size: 12px; color: var(--text-dim); background: rgba(255,255,255,0.03);
+    border-radius: 4px; padding: 6px 10px; margin-top: 4px; word-break: break-all;
+  }
+
+  /* 送出按鈕 */
+  .submit-btn {
+    width: 100%; padding: 14px; font-size: 17px; font-weight: bold;
+    color: #1a1510; background: linear-gradient(135deg, #c8a864, #a08040);
+    border: none; border-radius: 8px; cursor: pointer; letter-spacing: 2px;
+    transition: opacity 0.2s, transform 0.1s; font-family: inherit; margin-top: 6px;
+  }
+  .submit-btn:active { transform: scale(0.98); }
+  .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .msg {
+    text-align: center; padding: 12px; border-radius: 6px;
+    font-size: 15px; margin-top: 12px; display: none;
+  }
+  .msg.success { background: rgba(80,200,120,0.15); color: var(--success); border: 1px solid rgba(80,200,120,0.3); }
+  .msg.error { background: rgba(232,80,80,0.15); color: var(--danger); border: 1px solid rgba(232,80,80,0.3); }
+
+  .back-link {
+    display: block; text-align: center; margin-top: 16px;
+    color: var(--text-dim); font-size: 13px; text-decoration: none;
+  }
+  .back-link:hover { color: var(--gold); }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>問題回報</h1>
+    <p>遇到 Bug 嗎？請告訴我們，我們會盡快修復！</p>
+  </div>
+
+  <form id="bugForm">
+    <div class="form-group">
+      <label>玩家暱稱 <span class="optional">（選填）</span></label>
+      <input type="text" id="playerName" placeholder="讓我們知道你是誰" maxlength="50">
+    </div>
+
+    <div class="form-group">
+      <label>問題描述 <span style="color:#e85050">*</span></label>
+      <textarea id="description" placeholder="請描述你遇到的問題，越詳細越好：&#10;- 在哪個畫面？&#10;- 做了什麼操作？&#10;- 發生了什麼？" maxlength="5000" required></textarea>
+    </div>
+
+    <div class="form-group">
+      <label>截圖 <span class="optional">（選填，最多 5 張，可拍照或選相簿）</span></label>
+      <div class="upload-area" id="uploadArea">
+        <div class="icon">+</div>
+        <p>點擊上傳截圖，或拖曳圖片到此處</p>
+        <input type="file" id="fileInput" accept="image/*" multiple>
+      </div>
+      <div class="previews" id="previews"></div>
+      <div class="photo-count" id="photoCount"></div>
+    </div>
+
+    <div class="form-group">
+      <label>裝置資訊 <span class="optional">（自動偵測）</span></label>
+      <div class="device-info" id="deviceInfo"></div>
+    </div>
+
+    <button type="submit" class="submit-btn" id="submitBtn">送出回報</button>
+    <div class="msg success" id="successMsg">感謝回報！我們會盡快處理。</div>
+    <div class="msg error" id="errorMsg"></div>
+  </form>
+
+  <a class="back-link" href="./">回到遊戲</a>
+</div>
+
+<script>
+const API_URL = "https://three-kingdoms-td-server.fly.dev/api/bug-report";
+const MAX_PHOTOS = 5;
+
+const params = new URLSearchParams(location.search);
+const gameVersion = params.get("v") || "";
+const playerName = params.get("name") || "";
+const gameStateRaw = params.get("state") || "";
+
+let gameState = null;
+if (gameStateRaw) {
+  try { gameState = JSON.parse(decodeURIComponent(gameStateRaw)); } catch {}
+}
+if (playerName) document.getElementById("playerName").value = playerName;
+
+const deviceInfo = [
+  navigator.userAgent,
+  "Screen: " + screen.width + "x" + screen.height,
+  "Viewport: " + window.innerWidth + "x" + window.innerHeight,
+  "Lang: " + navigator.language,
+].join(" | ");
+document.getElementById("deviceInfo").textContent = deviceInfo;
+
+// ── 多張截圖 ──
+let screenshots = []; // base64 data URLs
+const fileInput = document.getElementById("fileInput");
+const uploadArea = document.getElementById("uploadArea");
+const previewsEl = document.getElementById("previews");
+const photoCount = document.getElementById("photoCount");
+
+function updateCount() {
+  photoCount.textContent = screenshots.length > 0
+    ? screenshots.length + " / " + MAX_PHOTOS + " 張"
+    : "";
+  uploadArea.style.display = screenshots.length >= MAX_PHOTOS ? "none" : "";
+}
+
+function addFile(file) {
+  if (!file || !file.type.startsWith("image/")) return;
+  if (screenshots.length >= MAX_PHOTOS) return;
+  if (file.size > 4 * 1024 * 1024) {
+    alert("圖片太大（" + (file.size / 1024 / 1024).toFixed(1) + "MB），請選擇 4MB 以下的圖片");
+    return;
+  }
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var dataUrl = e.target.result;
+    screenshots.push(dataUrl);
+    renderPreviews();
+  };
+  reader.readAsDataURL(file);
+}
+
+function renderPreviews() {
+  previewsEl.innerHTML = "";
+  screenshots.forEach(function(src, idx) {
+    var item = document.createElement("div");
+    item.className = "preview-item";
+    var img = document.createElement("img");
+    img.src = src;
+    item.appendChild(img);
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "remove-btn";
+    btn.textContent = "X";
+    btn.addEventListener("click", function() {
+      screenshots.splice(idx, 1);
+      renderPreviews();
+    });
+    item.appendChild(btn);
+    previewsEl.appendChild(item);
+  });
+  updateCount();
+}
+
+fileInput.addEventListener("change", function() {
+  var files = Array.from(this.files);
+  files.forEach(function(f) { addFile(f); });
+  this.value = "";
+});
+
+uploadArea.addEventListener("dragover", function(e) {
+  e.preventDefault(); this.classList.add("drag-over");
+});
+uploadArea.addEventListener("dragleave", function() {
+  this.classList.remove("drag-over");
+});
+uploadArea.addEventListener("drop", function(e) {
+  e.preventDefault(); this.classList.remove("drag-over");
+  Array.from(e.dataTransfer.files).forEach(function(f) { addFile(f); });
+});
+
+// ── 送出 ──
+document.getElementById("bugForm").addEventListener("submit", async function(e) {
+  e.preventDefault();
+  var btn = document.getElementById("submitBtn");
+  var successMsg = document.getElementById("successMsg");
+  var errorMsg = document.getElementById("errorMsg");
+  successMsg.style.display = "none";
+  errorMsg.style.display = "none";
+
+  var desc = document.getElementById("description").value.trim();
+  if (!desc) {
+    errorMsg.textContent = "請填寫問題描述";
+    errorMsg.style.display = "block";
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "送出中...";
+
+  try {
+    var payload = {
+      description: desc,
+      player_name: document.getElementById("playerName").value.trim() || null,
+      screenshots: screenshots.length > 0 ? screenshots : null,
+      device_info: deviceInfo,
+      game_version: gameVersion || null,
+      game_state: gameState,
+    };
+
+    var resp = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (!resp.ok) {
+      var text = await resp.text();
+      throw new Error(text || "送出失敗");
+    }
+
+    successMsg.style.display = "block";
+    document.getElementById("description").value = "";
+    screenshots = [];
+    renderPreviews();
+    btn.textContent = "已送出！";
+    setTimeout(function() { btn.textContent = "送出回報"; btn.disabled = false; }, 3000);
+  } catch (err) {
+    errorMsg.textContent = "送出失敗：" + err.message;
+    errorMsg.style.display = "block";
+    btn.disabled = false;
+    btn.textContent = "送出回報";
+  }
+});
+</script>
+</body>
+</html>
