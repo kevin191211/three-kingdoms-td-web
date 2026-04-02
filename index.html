@@ -752,7 +752,7 @@ body {
 					data-callback="handleGoogleLogin"
 					data-auto_prompt="false"
 					data-auto_select="true"
-					data-use_fedcm_for_prompt="true">
+					data-use_fedcm_for_prompt="false">
 				</div>
 				<div class="google-btn-wrap">
 					<div class="g_id_signin"
@@ -1133,7 +1133,7 @@ body {
 					client_id: "507989598042-c5vmt17uhsgs4gh5bi797k6lq3hv4981.apps.googleusercontent.com",
 					callback: handleGoogleLogin,
 					auto_select: true,
-					use_fedcm_for_prompt: true,
+					use_fedcm_for_prompt: false,
 				});
 				google.accounts.id.prompt();
 			}
@@ -1144,7 +1144,7 @@ body {
 		<script>
 		// Cache busting: 攔截 fetch，為 .pck/.wasm 加版本參數
 		(function() {
-			var V = "d25f145-1775108358";
+			var V = "ab783c6-1775124396";
 			var _f = window.fetch;
 			window.fetch = function(u) {
 				if (typeof u === "string" && /\.(pck|wasm|js)(\?|$)/.test(u))
@@ -1153,9 +1153,9 @@ body {
 			};
 		})();
 		</script>
-		<script src="index.js?v=d25f145-1775108358"></script>
+		<script src="index.js?v=ab783c6-1775124396"></script>
 		<script>
-		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":42381268,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":42574372,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 		const GODOT_THREADS_ENABLED = false;
 		const engine = new Engine(GODOT_CONFIG);
 
@@ -1326,7 +1326,7 @@ body {
 
 								auto_select: true,
 
-								use_fedcm_for_prompt: true,
+								use_fedcm_for_prompt: false,
 
 							});
 
