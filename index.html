@@ -81,35 +81,28 @@ body {
 }
 
 /* 載入畫面 */
-#status, #status-splash, #status-progress {
+#status, #status-progress {
 	position: absolute;
 	left: 0;
 	right: 0;
 }
-#status, #status-splash {
+#status {
 	top: 0;
 	bottom: 0;
-}
-#status {
-	background-color: #242424;
+	background-color: #0a0a0a;
+	background-image: url('home_bg.png');
+	background-size: cover;
+	background-position: center;
+	background-repeat: no-repeat;
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
 	align-items: center;
 	visibility: hidden;
 }
-#status-splash {
-	max-height: 100%;
-	max-width: 100%;
-	margin: auto;
-}
-#status-splash.show-image--false { display: none; }
-#status-splash.fullsize--true {
-	height: 100%;
-	width: 100%;
-	object-fit: contain;
-}
-#status-splash.use-filter--false { image-rendering: pixelated; }
+/* 隱藏 splash 和獨立 logo（背景圖已包含標題） */
+#status-splash { display: none !important; }
+#status-logo { display: none !important; }
 #status-progress, #status-notice { display: none; }
 
 /* --- 三國風進度條 --- */
@@ -555,6 +548,7 @@ body {
 
 		<div id="status">
 			<img id="status-splash" class="show-image--true fullsize--true use-filter--true" src="index.png" alt="">
+			<img id="status-logo" src="logo.png" alt="">
 			<progress id="status-progress"></progress>
 			<div id="status-progress-wrap">
 				<div id="status-progress-label"></div>
@@ -744,7 +738,7 @@ body {
 				<div class="p p4"></div><div class="p p5"></div>
 			</div>
 			<div class="login-card">
-				<img class="login-logo" src="index.png" alt="三國迷宮塔防">
+				<img class="login-logo" src="logo.png" alt="三國迷宮塔防">
 				<div class="login-subtitle">登入以儲存遊戲進度</div>
 
 				<div id="g_id_onload"
@@ -1144,7 +1138,7 @@ body {
 		<script>
 		// Cache busting: 攔截 fetch，為 .pck/.wasm 加版本參數
 		(function() {
-			var V = "da2f5ad-1775186055";
+			var V = "4ace585-1775189627";
 			var _f = window.fetch;
 			window.fetch = function(u) {
 				if (typeof u === "string" && /\.(pck|wasm|js)(\?|$)/.test(u))
@@ -1153,9 +1147,9 @@ body {
 			};
 		})();
 		</script>
-		<script src="index.js?v=da2f5ad-1775186055"></script>
+		<script src="index.js?v=4ace585-1775189627"></script>
 		<script>
-		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":42623296,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":47064832,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 		const GODOT_THREADS_ENABLED = false;
 		const engine = new Engine(GODOT_CONFIG);
 
