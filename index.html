@@ -108,7 +108,7 @@ body {
 /* --- 三國風進度條 --- */
 #status-progress-wrap {
 	position: absolute;
-	bottom: 12%;
+	bottom: 4%;
 	left: 50%;
 	transform: translateX(-50%);
 	width: min(70%, 320px);
@@ -192,6 +192,11 @@ body {
 
 		<!-- Google Ad Placement API (H5 Games Ads) -->
 		<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8320734474859568" crossorigin="anonymous"></script>
+		<script>
+		// ── Ad Placement API 適配器（adsbygoogle.js 不會自動建立這兩個函數）──
+		window.adsbygoogle = window.adsbygoogle || [];
+		var adBreak = adConfig = function(o) { adsbygoogle.push(o); };
+		</script>
 		<script>
 		// ── 廣告橋接：供 Godot JavaScriptBridge 呼叫 ──
 		window._rewardedAd = {
