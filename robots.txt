@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://kevin191211.github.io/three-kingdoms-td-web/sitemap.xml
