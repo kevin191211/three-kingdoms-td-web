@@ -1340,7 +1340,7 @@ body {
 		<script>
 		// Cache busting: 攔截 fetch，為 .pck/.wasm 加版本參數
 		(function() {
-			var V = "d8a45a2-1775451693";
+			var V = "3418d78-1775451954";
 			var _f = window.fetch;
 			window.fetch = function(u) {
 				if (typeof u === "string" && /\.(pck|wasm|js)(\?|$)/.test(u))
@@ -1349,9 +1349,9 @@ body {
 			};
 		})();
 		</script>
-		<script src="index.js?v=d8a45a2-1775451693"></script>
+		<script src="index.js?v=3418d78-1775451954"></script>
 		<script>
-		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":43283380,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":43283204,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 		const GODOT_THREADS_ENABLED = false;
 		const engine = new Engine(GODOT_CONFIG);
 
