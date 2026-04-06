@@ -82,6 +82,117 @@ body {
 	#fs-overlay { display: none !important; }
 }
 
+/* Landing Page（AdSense 爬蟲可見內容） */
+#landing-page {
+	position: relative;
+	z-index: 10;
+	background: linear-gradient(135deg, #0a0a1a 0%, #1a1a2e 50%, #0d1b2a 100%);
+	color: #e8e0d0;
+	font-family: 'Noto Sans TC', 'Noto Sans', 'Segoe UI', Arial, sans-serif;
+	min-height: 100vh;
+	padding: 0;
+	overflow-y: auto;
+}
+#landing-page .lp-hero {
+	text-align: center;
+	padding: 40px 20px 20px;
+	background: linear-gradient(180deg, rgba(139,115,64,0.15) 0%, transparent 100%);
+}
+#landing-page .lp-hero h1 {
+	font-size: 28px;
+	color: #c5a55a;
+	margin: 0 0 8px;
+	text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+}
+#landing-page .lp-hero .lp-subtitle {
+	font-size: 15px;
+	color: #b0a890;
+	margin: 0 0 20px;
+}
+#landing-page .lp-play-btn {
+	display: inline-block;
+	background: linear-gradient(180deg, #c9a530, #8b6914);
+	color: #1a1a2e;
+	font-size: 18px;
+	font-weight: bold;
+	padding: 12px 48px;
+	border: 2px solid #d4b96a;
+	border-radius: 8px;
+	cursor: pointer;
+	text-decoration: none;
+	box-shadow: 0 4px 16px rgba(201,165,48,0.4);
+}
+#landing-page .lp-play-btn:hover {
+	background: linear-gradient(180deg, #d4b96a, #a67c00);
+}
+#landing-page .lp-section {
+	max-width: 720px;
+	margin: 0 auto;
+	padding: 20px 24px;
+}
+#landing-page .lp-section h2 {
+	color: #c5a55a;
+	font-size: 20px;
+	border-bottom: 1px solid rgba(139,115,64,0.3);
+	padding-bottom: 6px;
+	margin: 24px 0 12px;
+}
+#landing-page .lp-section p,
+#landing-page .lp-section li {
+	font-size: 14px;
+	line-height: 1.7;
+	color: #d0c8b8;
+}
+#landing-page .lp-section ul {
+	padding-left: 20px;
+}
+#landing-page .lp-section li {
+	margin-bottom: 6px;
+}
+#landing-page .lp-features {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 16px;
+	margin-top: 12px;
+}
+#landing-page .lp-feature-card {
+	flex: 1 1 200px;
+	background: rgba(139,115,64,0.1);
+	border: 1px solid rgba(139,115,64,0.2);
+	border-radius: 8px;
+	padding: 16px;
+}
+#landing-page .lp-feature-card h3 {
+	color: #c5a55a;
+	font-size: 16px;
+	margin: 0 0 6px;
+}
+#landing-page .lp-feature-card p {
+	margin: 0;
+	font-size: 13px;
+}
+#landing-page .lp-nav {
+	text-align: center;
+	padding: 16px;
+	border-top: 1px solid rgba(139,115,64,0.2);
+	margin-top: 20px;
+}
+#landing-page .lp-nav a {
+	color: #8ab4f8;
+	margin: 0 12px;
+	text-decoration: none;
+	font-size: 13px;
+}
+#landing-page .lp-nav a:hover {
+	text-decoration: underline;
+}
+#landing-page .lp-footer {
+	text-align: center;
+	padding: 12px;
+	color: #666;
+	font-size: 12px;
+}
+
 /* 載入畫面 */
 #status, #status-progress {
 	position: absolute;
@@ -549,28 +660,72 @@ body {
 		</style>
 	</head>
 	<body>
-		<!-- SEO 內容：供搜尋引擎與 AdSense 爬蟲讀取，遊戲載入後被 canvas 覆蓋 -->
-		<div id="seo-content" style="position:absolute;z-index:-1;opacity:0;pointer-events:none;overflow:hidden;width:1px;height:1px;">
-			<h1>三國迷宮塔防 — Three Kingdoms Maze Defense</h1>
-			<p>三國迷宮塔防是一款結合經典三國武將與迷宮塔防玩法的免費線上策略遊戲。玩家可以收集超過 50 位三國武將，在隨機生成的迷宮中建造防禦塔，抵禦一波又一波的敵軍進攻。</p>
-			<h2>遊戲特色</h2>
-			<ul>
-				<li>經典三國武將收集系統 — 劉備、關羽、張飛、諸葛亮、曹操等知名武將</li>
-				<li>隨機迷宮生成 — 每局都是全新的地圖挑戰</li>
-				<li>多種防禦塔類型 — 弓箭塔、法術塔、投石車等</li>
-				<li>多人即時對戰 — 與其他玩家進行 PvP 塔防對決</li>
-				<li>每日挑戰 — 每天不同的限制條件與獎勵</li>
-				<li>武將養成 — 升級武將技能，打造最強陣容</li>
-				<li>免費遊玩 — 直接在瀏覽器中開始遊戲，無需下載</li>
-			</ul>
-			<h2>如何開始</h2>
-			<p>點擊開始按鈕即可進入遊戲。支援電腦與手機瀏覽器，橫向操作體驗最佳。透過 Google 帳號登入可同步遊戲進度。</p>
-			<h2>隱私權政策</h2>
-			<p>本遊戲使用 Google AdSense 提供廣告服務。我們尊重玩家隱私，僅收集必要的遊戲數據以提升遊戲體驗。</p>
-			<nav>
-				<a href="about.html">遊戲介紹</a> |
-				<a href="privacy.html">隱私權政策</a>
+		<!-- Landing Page：遊戲載入前可見，供 AdSense 爬蟲與搜尋引擎讀取 -->
+		<div id="landing-page">
+			<div class="lp-hero">
+				<h1>Three Kingdoms Maze Defense</h1>
+				<p class="lp-subtitle">Free Online Strategy Game - Tower Defense meets Three Kingdoms</p>
+				<a href="javascript:void(0)" class="lp-play-btn" onclick="document.getElementById('landing-page').style.display='none'">Start Game</a>
+			</div>
+
+			<div class="lp-section">
+				<h2>About This Game</h2>
+				<p>Three Kingdoms Maze Defense is a free-to-play browser strategy game that combines classic Three Kingdoms heroes with maze-based tower defense gameplay. Collect over 50 legendary generals, build defense towers in randomly generated mazes, and fend off waves of enemy forces. No download required - play instantly in your browser on both desktop and mobile.</p>
+
+				<div class="lp-features">
+					<div class="lp-feature-card">
+						<h3>Collect Heroes</h3>
+						<p>Over 50 Three Kingdoms generals including Liu Bei, Guan Yu, Zhang Fei, Zhuge Liang, Cao Cao, Sun Quan, Lu Bu and more. Each hero has unique skills and abilities from R to SSR rarity.</p>
+					</div>
+					<div class="lp-feature-card">
+						<h3>Maze Tower Defense</h3>
+						<p>Every battle features a randomly generated maze. Strategically place arrow towers, magic towers, catapults and more to create the ultimate defense.</p>
+					</div>
+					<div class="lp-feature-card">
+						<h3>PvP Multiplayer</h3>
+						<p>Challenge other players in real-time PvP tower defense battles. Compete on the leaderboard and prove your strategic skills.</p>
+					</div>
+					<div class="lp-feature-card">
+						<h3>Daily Challenges</h3>
+						<p>New challenges every day with unique restrictions and bonus rewards. Complete daily missions to earn gems and rare items.</p>
+					</div>
+				</div>
+
+				<h2>How to Play</h2>
+				<ul>
+					<li><strong>Build Towers</strong> - Place defense towers at strategic positions along the maze path to stop enemies</li>
+					<li><strong>Deploy Generals</strong> - Assign Three Kingdoms heroes to your towers for powerful skill effects</li>
+					<li><strong>Survive Waves</strong> - Defeat increasingly difficult waves of enemies to earn gold and experience</li>
+					<li><strong>Upgrade &amp; Collect</strong> - Level up your generals, unlock new tower types, and collect rare heroes through the gacha system</li>
+				</ul>
+
+				<h2>Game Modes</h2>
+				<ul>
+					<li><strong>Campaign Mode</strong> - Progress through increasingly challenging story stages</li>
+					<li><strong>Daily Challenge</strong> - Unique daily restrictions (limited tower types, faction-only teams) with bonus rewards</li>
+					<li><strong>Multiplayer Battle</strong> - Real-time PvP matches against other players worldwide</li>
+				</ul>
+
+				<h2>Supported Platforms</h2>
+				<p>Three Kingdoms Maze Defense runs directly in your web browser. Compatible with Chrome, Safari, Firefox, and Edge on both desktop and mobile devices. Landscape orientation recommended for the best experience. Sign in with Google to sync your progress across devices.</p>
+
+				<h2>FAQ</h2>
+				<ul>
+					<li><strong>Is it free?</strong> - Yes, completely free to play. Optional rewarded ads let you earn bonus gems.</li>
+					<li><strong>Do I need to download anything?</strong> - No, the game runs entirely in your browser.</li>
+					<li><strong>How do I save my progress?</strong> - Sign in with your Google account for automatic cloud saves. Guest mode saves locally.</li>
+					<li><strong>Can I play on mobile?</strong> - Yes, the game is optimized for mobile browsers in landscape mode.</li>
+				</ul>
+			</div>
+
+			<nav class="lp-nav">
+				<a href="about.html">Game Guide</a>
+				<a href="privacy.html">Privacy Policy</a>
+				<a href="mailto:kevin191211@gmail.com">Contact Us</a>
 			</nav>
+			<div class="lp-footer">
+				&copy; 2025 Three Kingdoms Maze Defense. This game uses Google AdSense for advertising services. We respect player privacy and only collect necessary game data to improve the gaming experience.
+			</div>
 		</div>
 
 		<!-- 直向提示 -->
@@ -1185,7 +1340,7 @@ body {
 		<script>
 		// Cache busting: 攔截 fetch，為 .pck/.wasm 加版本參數
 		(function() {
-			var V = "14ddff4-1775451092";
+			var V = "4f2862c-1775451575";
 			var _f = window.fetch;
 			window.fetch = function(u) {
 				if (typeof u === "string" && /\.(pck|wasm|js)(\?|$)/.test(u))
@@ -1194,9 +1349,9 @@ body {
 			};
 		})();
 		</script>
-		<script src="index.js?v=14ddff4-1775451092"></script>
+		<script src="index.js?v=4f2862c-1775451575"></script>
 		<script>
-		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":43283412,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":43283380,"index.wasm":37685705},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 		const GODOT_THREADS_ENABLED = false;
 		const engine = new Engine(GODOT_CONFIG);
 
@@ -1240,6 +1395,9 @@ body {
 
 			function setStatusMode(mode) {
 				if (statusMode === mode || !initializing) return;
+				// 隱藏 Landing Page（遊戲開始載入後不再顯示）
+				var lp = document.getElementById('landing-page');
+				if (lp) lp.style.display = 'none';
 				if (mode === 'hidden') {
 					statusOverlay.remove();
 					initializing = false;
